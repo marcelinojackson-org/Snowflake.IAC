@@ -40,6 +40,33 @@ Snowflake.IAC/
 - Terraform 1.5+
 - Snowflake account with permissions to create warehouses, databases, schemas, and objects
 - A bootstrap warehouse that already exists (used by the provider connection)
+- Snowflake CLI (SnowCLI) for running ad-hoc SQL and COPY INTO commands (optional)
+
+### SnowCLI prerequisites and install
+
+SnowCLI install options and prerequisites:
+
+- Homebrew (macOS):
+  ```bash
+  brew tap snowflakedb/snowflake-cli
+  brew update
+  brew install snowflake-cli
+  snow --help
+  ```
+- pipx (recommended for isolated Python install):
+  ```bash
+  pipx install snowflake-cli
+  snow --help
+  ```
+- pip (Python 3.10+ required):
+  ```bash
+  pip install snowflake-cli
+  snow --help
+  ```
+
+Install options and Python requirement are documented in Snowflake's SnowCLI install guide. citeturn2view1
+
+SnowCLI supports running SQL via `snow sql` in interactive mode or by passing a query/file. citeturn0search3turn2view1
 
 ## Configuration
 
@@ -136,6 +163,113 @@ Then update `snowflake_warehouse` and run a full apply.
 - HR: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
 - FINANCE: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
 - MARKETING: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
+
+### Load data (COPY INTO)
+
+Template:
+
+```sql
+COPY INTO "<DB>"."<SCHEMA>"."<TABLE>"
+FROM @"<DB>"."<SCHEMA>"."<STAGE>"/<path>/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+```
+
+Examples (RAW stage -> core tables):
+
+```sql
+-- HR
+COPY INTO "HR"."PUBLIC"."EMPLOYEES"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/employees/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "HR"."PUBLIC"."DEPARTMENTS"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/departments/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "HR"."PUBLIC"."POSITIONS"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/positions/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "HR"."PUBLIC"."BENEFITS"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/benefits/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "HR"."PUBLIC"."TIME_OFF_REQUESTS"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/time_off_requests/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+-- FINANCE
+COPY INTO "FINANCE"."PUBLIC"."ACCOUNTS"
+FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/accounts/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "FINANCE"."PUBLIC"."TRANSACTIONS"
+FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/transactions/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "FINANCE"."PUBLIC"."BUDGETS"
+FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/budgets/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "FINANCE"."PUBLIC"."INVOICES"
+FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/invoices/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "FINANCE"."PUBLIC"."PAYMENTS"
+FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/payments/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+-- MARKETING
+COPY INTO "MARKETING"."PUBLIC"."CAMPAIGNS"
+FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/campaigns/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "MARKETING"."PUBLIC"."LEADS"
+FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/leads/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "MARKETING"."PUBLIC"."CHANNELS"
+FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/channels/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "MARKETING"."PUBLIC"."CONTENT"
+FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/content/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+
+COPY INTO "MARKETING"."PUBLIC"."ENGAGEMENTS"
+FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/engagements/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+```
+
+Run these with SnowCLI:
+
+```bash
+snow sql --query "COPY INTO \"HR\".\"PUBLIC\".\"EMPLOYEES\" FROM @\"HR\".\"PUBLIC\".\"RAW_STAGE\"/employees/ FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' SKIP_HEADER=1) ON_ERROR='CONTINUE';"
+```
+
+Or put them in a file (e.g., `copy_into.sql`) and run:
+
+```bash
+snow sql --filename copy_into.sql
+```
+
+SnowCLI supports ad-hoc queries, files, and interactive mode. citeturn0search3
 
 ### Dynamic tables
 - `HR.PUBLIC.EMPLOYEE_ROSTER_DT`
