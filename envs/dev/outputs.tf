@@ -22,3 +22,8 @@ output "dynamic_table_names" {
   value       = [for key, mod in module.dynamic_tables : mod.fully_qualified_name]
   description = "Fully qualified dynamic table names."
 }
+
+output "stage_names" {
+  value       = [for key, mod in module.stages : mod.fully_qualified_name]
+  description = "Fully qualified stage names."
+}

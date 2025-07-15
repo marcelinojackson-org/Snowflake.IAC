@@ -32,6 +32,7 @@ Snowflake.IAC/
     sequence/
     stream_on_table/
     dynamic_table/
+    stage/
 ```
 
 ## Prerequisites
@@ -54,6 +55,19 @@ Required variables:
 - `snowflake_password`
 - `snowflake_role`
 - `snowflake_warehouse` (bootstrap warehouse for the provider)
+- `stage_bucket_raw`
+- `stage_bucket_silver`
+- `stage_bucket_gold`
+
+### S3 setup (example)
+
+Example AWS CLI commands for raw/silver/gold buckets (replace names/region):
+
+```bash
+aws s3api create-bucket --bucket myorg-snowflake-raw --region us-east-1
+aws s3api create-bucket --bucket myorg-snowflake-silver --region us-east-1
+aws s3api create-bucket --bucket myorg-snowflake-gold --region us-east-1
+```
 
 ## Usage
 
@@ -118,6 +132,11 @@ Then update `snowflake_warehouse` and run a full apply.
 - `FINANCE.PUBLIC.INVOICES_STREAM`
 - `MARKETING.PUBLIC.LEADS_STREAM`
 
+### Stages (RAW/SILVER/GOLD per database)
+- HR: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
+- FINANCE: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
+- MARKETING: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
+
 ### Dynamic tables
 - `HR.PUBLIC.EMPLOYEE_ROSTER_DT`
 - `FINANCE.PUBLIC.DAILY_TRANSACTIONS_DT`
@@ -135,5 +154,6 @@ Then update `snowflake_warehouse` and run a full apply.
 
 ## Notes
 
-- `snowflake_table`, `snowflake_sequence`, and `snowflake_dynamic_table` are preview features in the provider; the configuration enables them via `preview_features_enabled`.
+- `snowflake_table`, `snowflake_sequence`, `snowflake_dynamic_table`, and `snowflake_stage` are preview features in the provider; the configuration enables them via `preview_features_enabled`.
+- Stages are defined as external S3 stages. Provide bucket names and a storage integration via `stage_*` variables.
 - Transient and temporary tables are created with `snowflake_execute` using SQL. Temporary tables are session-scoped in Snowflake and may be dropped when the provider session ends.

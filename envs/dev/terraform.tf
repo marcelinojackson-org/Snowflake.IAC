@@ -17,6 +17,7 @@ provider "snowflake" {
   warehouse = var.snowflake_warehouse
 
   preview_features_enabled = [
+    "snowflake_stage_resource",
     "snowflake_table_resource",
     "snowflake_sequence_resource",
     "snowflake_dynamic_table_resource",

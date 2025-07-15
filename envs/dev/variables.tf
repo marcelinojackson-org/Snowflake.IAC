@@ -24,3 +24,24 @@ variable "snowflake_warehouse" {
   default     = "COMPUTE_WH"
   description = "Warehouse to use for provider operations (bootstrap warehouse)."
 }
+
+variable "stage_storage_integration" {
+  type        = string
+  default     = null
+  description = "Snowflake storage integration for external stages."
+}
+
+variable "stage_bucket_raw" {
+  type        = string
+  description = "S3 bucket name for the raw stage."
+}
+
+variable "stage_bucket_silver" {
+  type        = string
+  description = "S3 bucket name for the silver stage."
+}
+
+variable "stage_bucket_gold" {
+  type        = string
+  description = "S3 bucket name for the gold stage."
+}
