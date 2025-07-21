@@ -45,3 +45,20 @@ variable "stage_bucket_gold" {
   type        = string
   description = "S3 bucket name for the gold stage."
 }
+
+variable "share_accounts" {
+  type        = map(list(string))
+  default     = {}
+  description = "Map of share name to consumer accounts (organization.account)."
+}
+
+variable "iceberg_external_volume" {
+  type        = string
+  description = "External volume name for Iceberg tables."
+}
+
+variable "iceberg_base_location_prefix" {
+  type        = string
+  default     = "iceberg"
+  description = "Base location prefix for Iceberg tables within the external volume."
+}

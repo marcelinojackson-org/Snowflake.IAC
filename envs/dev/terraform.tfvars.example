@@ -8,3 +8,11 @@ stage_storage_integration = "S3_INT"
 stage_bucket_raw          = "myorg-snowflake-raw"
 stage_bucket_silver       = "myorg-snowflake-silver"
 stage_bucket_gold         = "myorg-snowflake-gold"
+
+share_accounts = {
+  HR_SHARE      = ["orgname.accountname"]
+  FINANCE_SHARE = ["orgname.accountname"]
+}
+
+iceberg_external_volume      = "ICEBERG_EXT_VOL"
+iceberg_base_location_prefix = "iceberg"
