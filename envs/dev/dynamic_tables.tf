@@ -10,5 +10,5 @@ module "dynamic_tables" {
   target_lag_maximum_duration = each.value.target_lag_maximum_duration
   comment                     = each.value.comment
 
-  depends_on = [for mod in module.tables : mod]
+  depends_on = concat([for mod in module.tables : mod], [snowflake_execute.transient_tables])
 }

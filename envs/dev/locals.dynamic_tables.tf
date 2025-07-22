@@ -50,5 +50,35 @@ locals {
         GROUP BY e.campaign_id;
       SQL
     }
+    "HR.EMPLOYEE_EVENTS_DT" = {
+      database                    = "HR"
+      schema                      = "PUBLIC"
+      name                        = "EMPLOYEE_EVENTS_DT"
+      warehouse_key               = "DEV_WH_MEDIUM"
+      target_lag_maximum_duration = "30 minutes"
+      comment                     = "Daily employee event counts."
+      query                       = <<-SQL
+        SELECT
+          DATE_TRUNC('DAY', event_ts) AS event_date,
+          COUNT(*) AS event_count
+        FROM "HR"."PUBLIC"."TRN_EMPLOYEE_EVENTS"
+        GROUP BY DATE_TRUNC('DAY', event_ts);
+      SQL
+    }
+    "FINANCE.PAYMENT_EVENTS_DT" = {
+      database                    = "FINANCE"
+      schema                      = "PUBLIC"
+      name                        = "PAYMENT_EVENTS_DT"
+      warehouse_key               = "DEV_WH_MEDIUM"
+      target_lag_maximum_duration = "30 minutes"
+      comment                     = "Daily payment event counts."
+      query                       = <<-SQL
+        SELECT
+          payment_date AS event_date,
+          COUNT(*) AS event_count
+        FROM "FINANCE"."PUBLIC"."PAYMENTS"
+        GROUP BY payment_date;
+      SQL
+    }
   }
 }
