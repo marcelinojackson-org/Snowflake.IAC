@@ -1,28 +1,41 @@
 # Snowflake.IAC
 
-Terraform-based infrastructure-as-code for Snowflake. This project provisions:
-- Warehouses (small, medium, large)
-- Databases (HR, FINANCE, MARKETING)
-- Schemas, tables, views, sequences, streams, and dynamic tables
-- Additional transient and temporary tables via SQL execution
+This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a realistic analytics footprint: warehouses, databases, schemas, tables, views, sequences, streams, dynamic tables, stages, external tables, tasks, functions, procedures, masking policies, row access policies, Iceberg tables, hybrid tables, event tables, and data shares. I also show how I load data from stages into tables and how I run ad‑hoc SQL with SnowCLI.
 
-## Structure
+## What I provision
+
+- Warehouses: small, medium, large
+- Databases: HR, FINANCE, MARKETING
+- Schemas: PUBLIC for each DB
+- Tables: 5 per database (core entities)
+- Views + materialized views
+- Semantic views
+- Sequences
+- Streams on tables
+- Dynamic tables (including event-style rollups)
+- Stages: RAW / SILVER / GOLD per database
+- External tables (RAW zone)
+- Tasks (scheduled)
+- Functions + procedures (simple SQL)
+- Masking policies (column-level) + row access policies (row-level)
+- Iceberg tables (via SQL)
+- Hybrid tables (via SQL)
+- Event tables (via SQL)
+- Shares + grants
+- Transient + temporary tables (via SQL)
+
+## Repository structure
 
 ```
 Snowflake.IAC/
   envs/
     dev/
       terraform.tf
-      warehouses.tf
-      databases_schemas.tf
-      sequences_tables.tf
-      views_streams.tf
-      dynamic_tables.tf
-      temp_tables.tf
-      locals.*.tf
       variables.tf
       outputs.tf
       terraform.tfvars.example
+      locals.*.tf
+      *.tf
   modules/
     warehouse/
     database/
@@ -33,62 +46,32 @@ Snowflake.IAC/
     stream_on_table/
     dynamic_table/
     stage/
+    materialized_view/
+    semantic_view/
+    task/
+    function_sql/
+    procedure_sql/
+    masking_policy/
+    row_access_policy/
+    external_table/
+    share/
+    grant_privileges_to_share/
+    table_column_masking_policy_application/
 ```
 
 ## Prerequisites
 
 - Terraform 1.5+
-- Snowflake account with permissions to create warehouses, databases, schemas, and objects
-- A bootstrap warehouse that already exists (used by the provider connection)
-- Snowflake CLI (SnowCLI) for running ad-hoc SQL and COPY INTO commands (optional)
+- Snowflake account with SYSADMIN or equivalent provisioning rights
+- A bootstrap warehouse (used by the provider connection)
+- S3 buckets for RAW/SILVER/GOLD stages
+- A Snowflake storage integration for external stages
+- A Snowflake external volume for Iceberg tables
+- SnowCLI (optional, but handy for loading data and running SQL)
 
-### SnowCLI prerequisites and install
+## My step-by-step setup
 
-SnowCLI install options and prerequisites:
-
-- Homebrew (macOS):
-  ```bash
-  brew tap snowflakedb/snowflake-cli
-  brew update
-  brew install snowflake-cli
-  snow --help
-  ```
-- pipx (recommended for isolated Python install):
-  ```bash
-  pipx install snowflake-cli
-  snow --help
-  ```
-- pip (Python 3.10+ required):
-  ```bash
-  pip install snowflake-cli
-  snow --help
-  ```
-
-Install options and Python requirement are documented in Snowflake's SnowCLI install guide. citeturn2view1
-
-SnowCLI supports running SQL via `snow sql` in interactive mode or by passing a query/file. citeturn0search3turn2view1
-
-## Configuration
-
-Copy the example vars file and update with your values:
-
-```bash
-cp envs/dev/terraform.tfvars.example envs/dev/terraform.tfvars
-```
-
-Required variables:
-- `snowflake_account`
-- `snowflake_user`
-- `snowflake_password`
-- `snowflake_role`
-- `snowflake_warehouse` (bootstrap warehouse for the provider)
-- `stage_bucket_raw`
-- `stage_bucket_silver`
-- `stage_bucket_gold`
-
-### S3 setup (example)
-
-Example AWS CLI commands for raw/silver/gold buckets (replace names/region):
+### 1) Create S3 buckets (RAW / SILVER / GOLD)
 
 ```bash
 aws s3api create-bucket --bucket myorg-snowflake-raw --region us-east-1
@@ -96,33 +79,128 @@ aws s3api create-bucket --bucket myorg-snowflake-silver --region us-east-1
 aws s3api create-bucket --bucket myorg-snowflake-gold --region us-east-1
 ```
 
-## Usage
+For non‑`us-east-1`, add `--create-bucket-configuration LocationConstraint=<region>`.
 
-Recommended commands (run from repo root):
+### 2) Create Snowflake integrations (storage integration + external volume)
+
+Example SQL (replace names/ARNs):
+
+```sql
+-- optional: IaC role + user
+CREATE ROLE IAC_ROLE;
+GRANT ROLE IAC_ROLE TO ROLE SYSADMIN;
+
+CREATE USER IAC_USER
+  PASSWORD = '<strong_password>'
+  DEFAULT_ROLE = IAC_ROLE
+  DEFAULT_WAREHOUSE = COMPUTE_WH
+  MUST_CHANGE_PASSWORD = FALSE;
+
+GRANT ROLE IAC_ROLE TO USER IAC_USER;
+GRANT CREATE WAREHOUSE, CREATE DATABASE, CREATE SCHEMA, CREATE STAGE,
+  CREATE TABLE, CREATE VIEW, CREATE MATERIALIZED VIEW, CREATE TASK
+  TO ROLE IAC_ROLE;
+
+-- storage integration for stages/external tables
+CREATE STORAGE INTEGRATION S3_INT
+  TYPE = EXTERNAL_STAGE
+  STORAGE_PROVIDER = S3
+  ENABLED = TRUE
+  STORAGE_AWS_ROLE_ARN = '<iam_role_arn>'
+  STORAGE_ALLOWED_LOCATIONS = (
+    's3://myorg-snowflake-raw/',
+    's3://myorg-snowflake-silver/',
+    's3://myorg-snowflake-gold/'
+  );
+
+-- external volume for Iceberg tables
+CREATE EXTERNAL VOLUME ICEBERG_EXT_VOL
+  STORAGE_LOCATIONS = (
+    (NAME = 'iceberg', STORAGE_PROVIDER = 'S3', STORAGE_BASE_URL = 's3://myorg-snowflake-raw/iceberg/')
+  );
+```
+
+### 3) Configure Terraform inputs
+
+```bash
+cp envs/dev/terraform.tfvars.example envs/dev/terraform.tfvars
+```
+
+Then edit `envs/dev/terraform.tfvars` with your account/user/role, stage buckets, storage integration, and external volume.
+
+### 4) Initialize Terraform (downloads the provider)
 
 ```bash
 terraform -chdir=envs/dev init
-terraform -chdir=envs/dev fmt -recursive
-terraform -chdir=envs/dev validate
+```
+
+### 5) Plan + apply
+
+```bash
 terraform -chdir=envs/dev plan -var-file=terraform.tfvars -out=tfplan
 terraform -chdir=envs/dev apply tfplan
 ```
 
-Destroy (if desired):
-
-```bash
-terraform -chdir=envs/dev destroy -var-file=terraform.tfvars
-```
-
-### Bootstrap note
-
-Views and dynamic tables require a warehouse in the provider connection. Use an existing warehouse such as `COMPUTE_WH` for `snowflake_warehouse`. If you want to use one of the warehouses created by this project, apply warehouses first:
+If I want to use a newly created warehouse for the provider session, I apply warehouses first, then update `snowflake_warehouse`:
 
 ```bash
 terraform -chdir=envs/dev apply -var-file=terraform.tfvars -target=module.warehouses
 ```
 
-Then update `snowflake_warehouse` and run a full apply.
+### 6) Load data from stages into tables
+
+Template:
+
+```sql
+COPY INTO "<DB>"."<SCHEMA>"."<TABLE>"
+FROM @"<DB>"."<SCHEMA>"."<STAGE>"/<path>/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+```
+
+Example (HR employees from RAW stage):
+
+```sql
+COPY INTO "HR"."PUBLIC"."EMPLOYEES"
+FROM @"HR"."PUBLIC"."RAW_STAGE"/employees/
+FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+```
+
+### 7) Run SQL with SnowCLI (optional)
+
+Install options:
+
+```bash
+# Homebrew (macOS)
+brew tap snowflakedb/snowflake-cli
+brew update
+brew install snowflake-cli
+
+# pipx
+pipx install snowflake-cli
+
+# pip (Python 3.10+)
+pip install snowflake-cli
+```
+
+Run SQL:
+
+```bash
+snow sql --query "COPY INTO \"HR\".\"PUBLIC\".\"EMPLOYEES\" FROM @\"HR\".\"PUBLIC\".\"RAW_STAGE\"/employees/ FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' SKIP_HEADER=1) ON_ERROR='CONTINUE';"
+```
+
+Or from a file:
+
+```bash
+snow sql --filename copy_into.sql
+```
+
+### 8) Destroy (optional)
+
+```bash
+terraform -chdir=envs/dev destroy -var-file=terraform.tfvars
+```
 
 ## Objects created
 
@@ -154,127 +232,67 @@ Then update `snowflake_warehouse` and run a full apply.
 - FINANCE: `OPEN_INVOICES`, `ACCOUNT_ACTIVITY`
 - MARKETING: `CAMPAIGN_PERFORMANCE`, `LEAD_SOURCES`
 
+### Materialized views
+- HR: `MV_EMP_COUNT_BY_DEPT`
+- FINANCE: `MV_DAILY_PAYMENTS`
+
+### Semantic views
+- HR: `SEM_EMPLOYEE`
+- FINANCE: `SEM_TRANSACTIONS`
+
 ### Streams
 - `HR.PUBLIC.EMPLOYEES_STREAM`
 - `FINANCE.PUBLIC.INVOICES_STREAM`
 - `MARKETING.PUBLIC.LEADS_STREAM`
+
+### Dynamic tables (including event-style rollups)
+- `HR.PUBLIC.EMPLOYEE_ROSTER_DT`
+- `FINANCE.PUBLIC.DAILY_TRANSACTIONS_DT`
+- `MARKETING.PUBLIC.CAMPAIGN_METRICS_DT`
+- `HR.PUBLIC.EMPLOYEE_EVENTS_DT`
+- `FINANCE.PUBLIC.PAYMENT_EVENTS_DT`
 
 ### Stages (RAW/SILVER/GOLD per database)
 - HR: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
 - FINANCE: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
 - MARKETING: `RAW_STAGE`, `SILVER_STAGE`, `GOLD_STAGE`
 
-### Load data (COPY INTO)
+### External tables
+- `HR.PUBLIC.EXT_EMPLOYEES_RAW`
+- `FINANCE.PUBLIC.EXT_TRANSACTIONS_RAW`
+- `MARKETING.PUBLIC.EXT_LEADS_RAW`
 
-Template:
+### Tasks
+- `HR.PUBLIC.EMPLOYEE_EVENT_TASK`
+- `FINANCE.PUBLIC.PAYMENT_ROLLUP_TASK`
 
-```sql
-COPY INTO "<DB>"."<SCHEMA>"."<TABLE>"
-FROM @"<DB>"."<SCHEMA>"."<STAGE>"/<path>/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-```
+### Functions
+- `HR.PUBLIC.NORMALIZE_EMAIL(email)`
+- `FINANCE.PUBLIC.FISCAL_YEAR(arg_date)`
 
-Examples (RAW stage -> core tables):
+### Procedures
+- `HR.PUBLIC.LOG_EMP_EVENT(emp_id, event_type)`
+- `FINANCE.PUBLIC.RECALC_DAILY_TRANSACTIONS()`
 
-```sql
--- HR
-COPY INTO "HR"."PUBLIC"."EMPLOYEES"
-FROM @"HR"."PUBLIC"."RAW_STAGE"/employees/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
+### Masking + row access policies
+- Masking: `HR.PUBLIC.EMAIL_MASK`, `FINANCE.PUBLIC.AMOUNT_MASK`
+- Row access: `HR.PUBLIC.EMPLOYEE_RAP` (applied to `HR.PUBLIC.EMPLOYEES`)
 
-COPY INTO "HR"."PUBLIC"."DEPARTMENTS"
-FROM @"HR"."PUBLIC"."RAW_STAGE"/departments/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
+### Iceberg tables (via SQL)
+- `HR.PUBLIC.ICEBERG_EMPLOYEES`
+- `FINANCE.PUBLIC.ICEBERG_TRANSACTIONS`
 
-COPY INTO "HR"."PUBLIC"."POSITIONS"
-FROM @"HR"."PUBLIC"."RAW_STAGE"/positions/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
+### Hybrid tables (via SQL)
+- `HR.PUBLIC.HYBRID_EMPLOYEE_DIM`
+- `FINANCE.PUBLIC.HYBRID_ACCOUNT_DIM`
 
-COPY INTO "HR"."PUBLIC"."BENEFITS"
-FROM @"HR"."PUBLIC"."RAW_STAGE"/benefits/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
+### Event tables (via SQL)
+- `HR.PUBLIC.EVENTS`
+- `FINANCE.PUBLIC.EVENTS`
 
-COPY INTO "HR"."PUBLIC"."TIME_OFF_REQUESTS"
-FROM @"HR"."PUBLIC"."RAW_STAGE"/time_off_requests/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
--- FINANCE
-COPY INTO "FINANCE"."PUBLIC"."ACCOUNTS"
-FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/accounts/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "FINANCE"."PUBLIC"."TRANSACTIONS"
-FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/transactions/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "FINANCE"."PUBLIC"."BUDGETS"
-FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/budgets/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "FINANCE"."PUBLIC"."INVOICES"
-FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/invoices/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "FINANCE"."PUBLIC"."PAYMENTS"
-FROM @"FINANCE"."PUBLIC"."RAW_STAGE"/payments/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
--- MARKETING
-COPY INTO "MARKETING"."PUBLIC"."CAMPAIGNS"
-FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/campaigns/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "MARKETING"."PUBLIC"."LEADS"
-FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/leads/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "MARKETING"."PUBLIC"."CHANNELS"
-FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/channels/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "MARKETING"."PUBLIC"."CONTENT"
-FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/content/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-
-COPY INTO "MARKETING"."PUBLIC"."ENGAGEMENTS"
-FROM @"MARKETING"."PUBLIC"."RAW_STAGE"/engagements/
-FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
-ON_ERROR = 'CONTINUE';
-```
-
-Run these with SnowCLI:
-
-```bash
-snow sql --query "COPY INTO \"HR\".\"PUBLIC\".\"EMPLOYEES\" FROM @\"HR\".\"PUBLIC\".\"RAW_STAGE\"/employees/ FILE_FORMAT=(TYPE=CSV FIELD_DELIMITER=',' SKIP_HEADER=1) ON_ERROR='CONTINUE';"
-```
-
-Or put them in a file (e.g., `copy_into.sql`) and run:
-
-```bash
-snow sql --filename copy_into.sql
-```
-
-SnowCLI supports ad-hoc queries, files, and interactive mode. citeturn0search3
-
-### Dynamic tables
-- `HR.PUBLIC.EMPLOYEE_ROSTER_DT`
-- `FINANCE.PUBLIC.DAILY_TRANSACTIONS_DT`
-- `MARKETING.PUBLIC.CAMPAIGN_METRICS_DT`
+### Shares
+- `HR_SHARE` (USAGE on DB/SCHEMA + SELECT on HR.PUBLIC tables)
+- `FINANCE_SHARE` (USAGE on DB/SCHEMA + SELECT on FINANCE.PUBLIC tables)
 
 ### Transient tables
 - HR: `TRN_EMPLOYEE_EVENTS`, `TRN_BENEFIT_ENROLLMENTS`
@@ -288,6 +306,6 @@ SnowCLI supports ad-hoc queries, files, and interactive mode. citeturn0sea
 
 ## Notes
 
-- `snowflake_table`, `snowflake_sequence`, `snowflake_dynamic_table`, and `snowflake_stage` are preview features in the provider; the configuration enables them via `preview_features_enabled`.
-- Stages are defined as external S3 stages. Provide bucket names and a storage integration via `stage_*` variables.
-- Transient and temporary tables are created with `snowflake_execute` using SQL. Temporary tables are session-scoped in Snowflake and may be dropped when the provider session ends.
+- Some resources are preview in the provider (materialized views, semantic views, functions, procedures, external tables, table column masking policy application, shares). I enable them in `preview_features_enabled` in `envs/dev/terraform.tf`.
+- Iceberg, hybrid, and event tables are created with `snowflake_execute` (SQL). They require account-level objects (external volume, etc.).
+- Temporary tables are session‑scoped in Snowflake; they may be dropped when the provider session ends.
