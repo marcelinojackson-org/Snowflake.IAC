@@ -131,20 +131,21 @@ Then edit `envs/dev/terraform.tfvars` with your account/user/role, stage buckets
 ### 4) Initialize Terraform (downloads the provider)
 
 ```bash
-terraform -chdir=envs/dev init
+cd envs/dev
+terraform init
 ```
 
 ### 5) Plan + apply
 
 ```bash
-terraform -chdir=envs/dev plan -var-file=terraform.tfvars -out=tfplan
-terraform -chdir=envs/dev apply tfplan
+terraform plan -var-file=terraform.tfvars -out=tfplan
+terraform apply tfplan
 ```
 
 If I want to use a newly created warehouse for the provider session, I apply warehouses first, then update `snowflake_warehouse`:
 
 ```bash
-terraform -chdir=envs/dev apply -var-file=terraform.tfvars -target=module.warehouses
+terraform apply -var-file=terraform.tfvars -target=module.warehouses
 ```
 
 ### 6) Load data from stages into tables
@@ -169,20 +170,16 @@ ON_ERROR = 'CONTINUE';
 
 ### 7) Run SQL with SnowCLI (optional)
 
-Install options:
+Install SnowCLI (macOS):
 
 ```bash
-# Homebrew (macOS)
+# I’m on macOS, so I install SnowCLI with Homebrew
 brew tap snowflakedb/snowflake-cli
 brew update
 brew install snowflake-cli
-
-# pipx
-pipx install snowflake-cli
-
-# pip (Python 3.10+)
-pip install snowflake-cli
 ```
+
+If you’re not on macOS, use the Snowflake docs to pick the right installer for your OS.
 
 Run SQL:
 
@@ -199,7 +196,7 @@ snow sql --filename copy_into.sql
 ### 8) Destroy (optional)
 
 ```bash
-terraform -chdir=envs/dev destroy -var-file=terraform.tfvars
+terraform destroy -var-file=terraform.tfvars
 ```
 
 ## Objects created
