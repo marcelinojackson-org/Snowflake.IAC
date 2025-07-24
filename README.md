@@ -4,6 +4,11 @@ This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a re
 
 ## Here diagram
 
+![Snowflake IaC ER diagram](docs/er-diagram.svg)
+
+<details>
+<summary>Mermaid source</summary>
+
 ```mermaid
 %%{init: {"er": {"layoutDirection": "LR"}}}%%
 %% Databases: HR, FINANCE, MARKETING. Schemas per DB: RAW, SILVER, GOLD. Warehouses: SMALL, MEDIUM, LARGE.
@@ -152,6 +157,7 @@ erDiagram
     SHARE }o--o{ VIEW : shares_view
     SHARE }o--o{ PERMANENT_TABLE : shares_table
 ```
+</details>
 
 ## What I provision
 
