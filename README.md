@@ -2,6 +2,157 @@
 
 This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a realistic analytics footprint: warehouses, databases, schemas, tables, views, sequences, streams, dynamic tables, stages, external tables, tasks, functions, procedures, masking policies, row access policies, Iceberg tables, hybrid tables, event tables, and data shares. I also show how I load data from stages into tables and how I run ad‑hoc SQL with SnowCLI.
 
+## Here diagram
+
+```mermaid
+%%{init: {"er": {"layoutDirection": "LR"}}}%%
+%% Databases: HR, FINANCE, MARKETING. Schemas per DB: RAW, SILVER, GOLD. Warehouses: SMALL, MEDIUM, LARGE.
+erDiagram
+    DATABASE {
+        string NAME
+    }
+    SCHEMA {
+        string NAME
+    }
+    WAREHOUSE {
+        string NAME
+        string SIZE
+    }
+    STORAGE_INTEGRATION {
+        string NAME
+    }
+    EXTERNAL_VOLUME {
+        string NAME
+    }
+    FILE_FORMAT {
+        string NAME
+        string TYPE
+    }
+    STAGE {
+        string NAME
+        string ZONE
+    }
+
+    PERMANENT_TABLE {
+        string NAME
+    }
+    TRANSIENT_TABLE {
+        string NAME
+    }
+    TEMP_TABLE {
+        string NAME
+    }
+    HYBRID_TABLE {
+        string NAME
+    }
+    ICEBERG_TABLE {
+        string NAME
+    }
+    EXTERNAL_TABLE {
+        string NAME
+    }
+    DYNAMIC_TABLE {
+        string NAME
+        string PURPOSE
+    }
+
+    VIEW {
+        string NAME
+    }
+    MATERIALIZED_VIEW {
+        string NAME
+    }
+    SEMANTIC_VIEW {
+        string NAME
+    }
+
+    STREAM {
+        string NAME
+    }
+    SEQUENCE {
+        string NAME
+    }
+    TASK {
+        string NAME
+        string SCHEDULE
+    }
+    FUNCTION {
+        string NAME
+    }
+    PROCEDURE {
+        string NAME
+    }
+
+    MASKING_POLICY {
+        string NAME
+    }
+    ROW_ACCESS_POLICY {
+        string NAME
+    }
+    COLUMN {
+        string NAME
+        string DATA_TYPE
+    }
+
+    SHARE {
+        string NAME
+    }
+
+    DATABASE ||--o{ SCHEMA : has
+    SCHEMA ||--o{ STAGE : contains
+    SCHEMA ||--o{ PERMANENT_TABLE : contains
+    SCHEMA ||--o{ TRANSIENT_TABLE : contains
+    SCHEMA ||--o{ TEMP_TABLE : contains
+    SCHEMA ||--o{ HYBRID_TABLE : contains
+    SCHEMA ||--o{ ICEBERG_TABLE : contains
+    SCHEMA ||--o{ EXTERNAL_TABLE : contains
+    SCHEMA ||--o{ DYNAMIC_TABLE : contains
+    SCHEMA ||--o{ VIEW : contains
+    SCHEMA ||--o{ MATERIALIZED_VIEW : contains
+    SCHEMA ||--o{ SEMANTIC_VIEW : contains
+    SCHEMA ||--o{ STREAM : contains
+    SCHEMA ||--o{ SEQUENCE : contains
+    SCHEMA ||--o{ TASK : contains
+    SCHEMA ||--o{ FUNCTION : contains
+    SCHEMA ||--o{ PROCEDURE : contains
+    SCHEMA ||--o{ MASKING_POLICY : contains
+    SCHEMA ||--o{ ROW_ACCESS_POLICY : contains
+
+    STAGE }o--|| STORAGE_INTEGRATION : uses
+    STAGE }o--|| FILE_FORMAT : uses
+    EXTERNAL_TABLE }o--|| STAGE : reads_from
+    EXTERNAL_TABLE }o--|| FILE_FORMAT : parses_with
+
+    ICEBERG_TABLE }o--|| EXTERNAL_VOLUME : uses
+    EXTERNAL_VOLUME }o--|| STORAGE_INTEGRATION : uses
+
+    WAREHOUSE ||--o{ TASK : runs_on
+    WAREHOUSE ||--o{ DYNAMIC_TABLE : refreshes
+    PROCEDURE }o--o{ TASK : invoked_by
+
+    PERMANENT_TABLE ||--o{ COLUMN : has
+    TRANSIENT_TABLE ||--o{ COLUMN : has
+    TEMP_TABLE ||--o{ COLUMN : has
+    HYBRID_TABLE ||--o{ COLUMN : has
+    ICEBERG_TABLE ||--o{ COLUMN : has
+    EXTERNAL_TABLE ||--o{ COLUMN : has
+    DYNAMIC_TABLE ||--o{ COLUMN : has
+
+    PERMANENT_TABLE }o--o{ VIEW : source_of
+    PERMANENT_TABLE }o--o{ MATERIALIZED_VIEW : source_of
+    PERMANENT_TABLE }o--o{ SEMANTIC_VIEW : source_of
+    PERMANENT_TABLE ||--o{ STREAM : stream_on
+    PERMANENT_TABLE }o--o{ DYNAMIC_TABLE : source_of
+    SEQUENCE }o--o{ PERMANENT_TABLE : used_by
+
+    MASKING_POLICY }o--o{ COLUMN : applied_to
+    ROW_ACCESS_POLICY }o--o{ PERMANENT_TABLE : applied_to
+
+    SHARE }o--o{ DATABASE : shares_db
+    SHARE }o--o{ VIEW : shares_view
+    SHARE }o--o{ PERMANENT_TABLE : shares_table
+```
+
 ## What I provision
 
 - Warehouses: small, medium, large
