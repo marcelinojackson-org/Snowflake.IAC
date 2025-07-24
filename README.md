@@ -2,7 +2,7 @@
 
 This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a realistic analytics footprint: warehouses, databases, schemas, tables, views, sequences, streams, dynamic tables, stages, external tables, tasks, functions, procedures, masking policies, row access policies, Iceberg tables, hybrid tables, event tables, and data shares. I also show how I load data from stages into tables and how I run ad‑hoc SQL with SnowCLI.
 
-## Here diagram
+## ER entity relationship diagram
 
 ![Snowflake IaC ER diagram](docs/er-diagram.svg)
 
