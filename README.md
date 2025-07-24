@@ -61,7 +61,7 @@ Snowflake.IAC/
 
 ## Prerequisites
 
-- Terraform 1.5+
+- Terraform 1.12
 - Snowflake account with SYSADMIN or equivalent provisioning rights
 - A bootstrap warehouse (used by the provider connection)
 - S3 buckets for RAW/SILVER/GOLD stages
