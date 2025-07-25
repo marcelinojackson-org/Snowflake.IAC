@@ -6,10 +6,16 @@ locals {
       name     = "ICEBERG_EMPLOYEES"
       columns = [
         "EMPLOYEE_ID NUMBER",
+        "EMPLOYEE_NUMBER STRING",
         "FIRST_NAME STRING",
         "LAST_NAME STRING",
         "EMAIL STRING",
-        "HIRE_DATE DATE"
+        "HIRE_DATE DATE",
+        "JOB_TITLE STRING",
+        "DEPARTMENT_ID NUMBER",
+        "EMPLOYMENT_STATUS STRING",
+        "BASE_SALARY NUMBER(18,2)",
+        "SALARY_CURRENCY STRING"
       ]
     }
     "FINANCE.ICEBERG_TRANSACTIONS" = {
@@ -20,8 +26,11 @@ locals {
         "TRANSACTION_ID NUMBER",
         "ACCOUNT_ID NUMBER",
         "TRANSACTION_DATE DATE",
+        "POSTED_TS TIMESTAMP_NTZ",
+        "DESCRIPTION STRING",
         "AMOUNT NUMBER(18,2)",
-        "CURRENCY STRING"
+        "CURRENCY STRING",
+        "STATUS STRING"
       ]
     }
   }
@@ -59,6 +68,9 @@ locals {
         "FULL_NAME STRING",
         "EMAIL STRING",
         "DEPARTMENT_ID NUMBER",
+        "JOB_TITLE STRING",
+        "EMPLOYMENT_STATUS STRING",
+        "UPDATED_AT TIMESTAMP_NTZ",
         "PRIMARY KEY (EMPLOYEE_ID)"
       ]
     }
@@ -71,6 +83,7 @@ locals {
         "ACCOUNT_NAME STRING",
         "ACCOUNT_TYPE STRING",
         "STATUS STRING",
+        "UPDATED_AT TIMESTAMP_NTZ",
         "PRIMARY KEY (ACCOUNT_ID)"
       ]
     }

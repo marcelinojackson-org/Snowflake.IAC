@@ -8,7 +8,9 @@ locals {
         { name = "EVENT_ID", type = "NUMBER(38,0)" },
         { name = "EMPLOYEE_ID", type = "NUMBER(38,0)" },
         { name = "EVENT_TYPE", type = "VARCHAR(100)" },
-        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" }
+        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" },
+        { name = "SOURCE_SYSTEM", type = "VARCHAR(50)" },
+        { name = "EVENT_PAYLOAD", type = "VARIANT" }
       ]
     }
     "HR.TRN_BENEFIT_ENROLLMENTS" = {
@@ -19,7 +21,10 @@ locals {
         { name = "ENROLLMENT_ID", type = "NUMBER(38,0)" },
         { name = "EMPLOYEE_ID", type = "NUMBER(38,0)" },
         { name = "BENEFIT_ID", type = "NUMBER(38,0)" },
-        { name = "EFFECTIVE_DATE", type = "DATE" }
+        { name = "PLAN_CODE", type = "VARCHAR(50)" },
+        { name = "EFFECTIVE_DATE", type = "DATE" },
+        { name = "ENROLLMENT_STATUS", type = "VARCHAR(30)" },
+        { name = "CREATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
     "FINANCE.TRN_PAYMENT_EVENTS" = {
@@ -30,7 +35,9 @@ locals {
         { name = "PAYMENT_EVENT_ID", type = "NUMBER(38,0)" },
         { name = "PAYMENT_ID", type = "NUMBER(38,0)" },
         { name = "EVENT_TYPE", type = "VARCHAR(50)" },
-        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" }
+        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" },
+        { name = "AMOUNT", type = "NUMBER(18,2)" },
+        { name = "STATUS", type = "VARCHAR(20)" }
       ]
     }
     "FINANCE.TRN_GL_STAGING" = {
@@ -39,9 +46,12 @@ locals {
       name     = "TRN_GL_STAGING"
       columns = [
         { name = "ENTRY_ID", type = "NUMBER(38,0)" },
+        { name = "JOURNAL_ID", type = "VARCHAR(40)" },
         { name = "ACCOUNT_ID", type = "NUMBER(38,0)" },
+        { name = "GL_ACCOUNT", type = "VARCHAR(20)" },
         { name = "AMOUNT", type = "NUMBER(18,2)" },
-        { name = "POSTED_DATE", type = "DATE" }
+        { name = "POSTED_DATE", type = "DATE" },
+        { name = "DESCRIPTION", type = "VARCHAR(200)" }
       ]
     }
     "MARKETING.TRN_LEAD_EVENTS" = {
@@ -52,7 +62,10 @@ locals {
         { name = "LEAD_EVENT_ID", type = "NUMBER(38,0)" },
         { name = "LEAD_ID", type = "NUMBER(38,0)" },
         { name = "EVENT_TYPE", type = "VARCHAR(50)" },
-        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" }
+        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" },
+        { name = "SOURCE", type = "VARCHAR(50)" },
+        { name = "SCORE", type = "NUMBER(5,2)" },
+        { name = "EVENT_PAYLOAD", type = "VARIANT" }
       ]
     }
     "MARKETING.TRN_ATTRIBUTION_EVENTS" = {
@@ -63,7 +76,10 @@ locals {
         { name = "ATTRIBUTION_ID", type = "NUMBER(38,0)" },
         { name = "CAMPAIGN_ID", type = "NUMBER(38,0)" },
         { name = "CHANNEL_ID", type = "NUMBER(38,0)" },
-        { name = "WEIGHT", type = "NUMBER(9,4)" }
+        { name = "TOUCHPOINT", type = "VARCHAR(100)" },
+        { name = "MODEL", type = "VARCHAR(50)" },
+        { name = "WEIGHT", type = "NUMBER(9,4)" },
+        { name = "EVENT_TS", type = "TIMESTAMP_NTZ" }
       ]
     }
   }
@@ -77,7 +93,9 @@ locals {
         { name = "EMPLOYEE_ID", type = "NUMBER(38,0)" },
         { name = "PAY_PERIOD", type = "VARCHAR(20)" },
         { name = "GROSS_PAY", type = "NUMBER(18,2)" },
-        { name = "NET_PAY", type = "NUMBER(18,2)" }
+        { name = "NET_PAY", type = "NUMBER(18,2)" },
+        { name = "TAX_WITHHELD", type = "NUMBER(18,2)" },
+        { name = "CALCULATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
     "HR.TMP_HIRING_PIPELINE" = {
@@ -88,6 +106,7 @@ locals {
         { name = "CANDIDATE_ID", type = "NUMBER(38,0)" },
         { name = "ROLE", type = "VARCHAR(100)" },
         { name = "STAGE", type = "VARCHAR(50)" },
+        { name = "SOURCE", type = "VARCHAR(50)" },
         { name = "UPDATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
@@ -99,7 +118,8 @@ locals {
         { name = "FORECAST_ID", type = "NUMBER(38,0)" },
         { name = "FISCAL_MONTH", type = "VARCHAR(7)" },
         { name = "FORECAST_AMOUNT", type = "NUMBER(18,2)" },
-        { name = "SCENARIO", type = "VARCHAR(50)" }
+        { name = "SCENARIO", type = "VARCHAR(50)" },
+        { name = "CREATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
     "FINANCE.TMP_CASHFLOW" = {
@@ -110,7 +130,8 @@ locals {
         { name = "FLOW_DATE", type = "DATE" },
         { name = "INCOMING", type = "NUMBER(18,2)" },
         { name = "OUTGOING", type = "NUMBER(18,2)" },
-        { name = "NET_FLOW", type = "NUMBER(18,2)" }
+        { name = "NET_FLOW", type = "NUMBER(18,2)" },
+        { name = "UPDATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
     "MARKETING.TMP_SPEND_ALLOCATION" = {
@@ -121,7 +142,8 @@ locals {
         { name = "CAMPAIGN_ID", type = "NUMBER(38,0)" },
         { name = "CHANNEL_ID", type = "NUMBER(38,0)" },
         { name = "BUDGET", type = "NUMBER(18,2)" },
-        { name = "ALLOCATION_PCT", type = "NUMBER(5,2)" }
+        { name = "ALLOCATION_PCT", type = "NUMBER(5,2)" },
+        { name = "UPDATED_AT", type = "TIMESTAMP_NTZ" }
       ]
     }
     "MARKETING.TMP_LEAD_SCORES" = {
@@ -132,7 +154,8 @@ locals {
         { name = "LEAD_ID", type = "NUMBER(38,0)" },
         { name = "SCORE", type = "NUMBER(5,2)" },
         { name = "MODEL_VERSION", type = "VARCHAR(20)" },
-        { name = "SCORED_AT", type = "TIMESTAMP_NTZ" }
+        { name = "SCORED_AT", type = "TIMESTAMP_NTZ" },
+        { name = "SCORE_REASON", type = "VARCHAR(200)" }
       ]
     }
   }
