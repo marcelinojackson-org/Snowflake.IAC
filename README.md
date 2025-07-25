@@ -4,8 +4,6 @@ This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a re
 
 ## ER diagram
 
-![Snowflake IaC ER diagram](docs/er-diagram.svg)
-
 <details>
 <summary>Mermaid source</summary>
 
