@@ -11,6 +11,8 @@ locals {
           e.first_name,
           e.last_name,
           e.email,
+          e.job_title,
+          e.employment_status,
           d.department_name
         FROM "HR"."PUBLIC"."EMPLOYEES" e
         LEFT JOIN "HR"."PUBLIC"."DEPARTMENTS" d
@@ -28,7 +30,9 @@ locals {
           r.employee_id,
           r.start_date,
           r.end_date,
-          r.status
+          r.requested_days,
+          r.status,
+          r.reason
         FROM "HR"."PUBLIC"."TIME_OFF_REQUESTS" r;
       SQL
     }
@@ -40,10 +44,12 @@ locals {
       statement = <<-SQL
         SELECT
           i.invoice_id,
+          i.invoice_number,
           i.vendor_id,
           i.invoice_date,
           i.due_date,
-          i.total_amount
+          i.total_amount,
+          i.status
         FROM "FINANCE"."PUBLIC"."INVOICES" i
         LEFT JOIN "FINANCE"."PUBLIC"."PAYMENTS" p
           ON i.invoice_id = p.invoice_id
@@ -58,10 +64,14 @@ locals {
       statement = <<-SQL
         SELECT
           a.account_id,
+          a.account_number,
           a.account_name,
+          a.account_type,
+          a.status,
           t.transaction_date,
           t.amount,
-          t.currency
+          t.currency,
+          t.category
         FROM "FINANCE"."PUBLIC"."ACCOUNTS" a
         LEFT JOIN "FINANCE"."PUBLIC"."TRANSACTIONS" t
           ON a.account_id = t.account_id;
@@ -76,7 +86,10 @@ locals {
         SELECT
           c.campaign_id,
           c.campaign_name,
+          c.campaign_type,
+          c.status,
           e.engagement_date,
+          e.event_type,
           e.metric_value
         FROM "MARKETING"."PUBLIC"."CAMPAIGNS" c
         LEFT JOIN "MARKETING"."PUBLIC"."ENGAGEMENTS" e
@@ -94,7 +107,9 @@ locals {
           l.first_name,
           l.last_name,
           l.email,
-          l.source
+          l.company,
+          l.source,
+          l.status
         FROM "MARKETING"."PUBLIC"."LEADS" l;
       SQL
     }

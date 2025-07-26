@@ -12,6 +12,8 @@ locals {
           e.employee_id,
           e.first_name,
           e.last_name,
+          e.job_title,
+          e.employment_status,
           d.department_name
         FROM "HR"."PUBLIC"."EMPLOYEES" e
         LEFT JOIN "HR"."PUBLIC"."DEPARTMENTS" d
@@ -28,10 +30,11 @@ locals {
       query                       = <<-SQL
         SELECT
           t.transaction_date,
-          SUM(t.amount) AS total_amount,
-          t.currency
+          t.currency,
+          t.status,
+          SUM(t.amount) AS total_amount
         FROM "FINANCE"."PUBLIC"."TRANSACTIONS" t
-        GROUP BY t.transaction_date, t.currency;
+        GROUP BY t.transaction_date, t.currency, t.status;
       SQL
     }
     "MARKETING.CAMPAIGN_METRICS_DT" = {
@@ -44,10 +47,11 @@ locals {
       query                       = <<-SQL
         SELECT
           e.campaign_id,
+          e.event_type,
           COUNT(*) AS engagement_count,
           SUM(e.metric_value) AS total_metric
         FROM "MARKETING"."PUBLIC"."ENGAGEMENTS" e
-        GROUP BY e.campaign_id;
+        GROUP BY e.campaign_id, e.event_type;
       SQL
     }
     "HR.EMPLOYEE_EVENTS_DT" = {
@@ -60,9 +64,10 @@ locals {
       query                       = <<-SQL
         SELECT
           DATE_TRUNC('DAY', event_ts) AS event_date,
+          event_type,
           COUNT(*) AS event_count
         FROM "HR"."PUBLIC"."TRN_EMPLOYEE_EVENTS"
-        GROUP BY DATE_TRUNC('DAY', event_ts);
+        GROUP BY DATE_TRUNC('DAY', event_ts), event_type;
       SQL
     }
     "FINANCE.PAYMENT_EVENTS_DT" = {
@@ -75,9 +80,10 @@ locals {
       query                       = <<-SQL
         SELECT
           payment_date AS event_date,
+          payment_status,
           COUNT(*) AS event_count
         FROM "FINANCE"."PUBLIC"."PAYMENTS"
-        GROUP BY payment_date;
+        GROUP BY payment_date, payment_status;
       SQL
     }
   }
