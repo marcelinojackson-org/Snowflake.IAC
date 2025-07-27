@@ -1,218 +1,436 @@
-# Snowflake.IAC
+# Snowflake IAC Demo
 
 This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a realistic analytics footprint: warehouses, databases, schemas, tables, views, sequences, streams, dynamic tables, stages, external tables, tasks, functions, procedures, masking policies, row access policies, Iceberg tables, hybrid tables, event tables, and data shares. I also show how I load data from stages into tables and how I run ad‑hoc SQL with SnowCLI.
 
 ## ER diagram
 
-<details>
-<summary>Mermaid source</summary>
-
 ```mermaid
 %%{init: {"er": {"layoutDirection": "LR"}}}%%
-%% Databases: HR, FINANCE, MARKETING. Schemas per DB: RAW, SILVER, GOLD. Warehouses: SMALL, MEDIUM, LARGE.
 erDiagram
-    DATABASE {
-        string NAME
+    HR_DB {
+        string HR
     }
-    SCHEMA {
-        string NAME
+    HR_PUBLIC_SCHEMA {
+        string PUBLIC
     }
-    WAREHOUSE {
-        string NAME
-        string SIZE
+    FINANCE_DB {
+        string FINANCE
     }
-    STORAGE_INTEGRATION {
-        string NAME
+    FINANCE_PUBLIC_SCHEMA {
+        string PUBLIC
     }
-    EXTERNAL_VOLUME {
-        string NAME
+    MARKETING_DB {
+        string MARKETING
     }
-    FILE_FORMAT {
-        string NAME
-        string TYPE
-    }
-    STAGE {
-        string NAME
-        string ZONE
+    MARKETING_PUBLIC_SCHEMA {
+        string PUBLIC
     }
 
-    PERMANENT_TABLE {
-        string NAME
+    HR_EMPLOYEES {
+        number EMPLOYEE_ID
+        string EMPLOYEE_NUMBER
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+        date HIRE_DATE
+        string JOB_TITLE
+        number DEPARTMENT_ID
+        string EMPLOYMENT_STATUS
     }
-    TRANSIENT_TABLE {
-        string NAME
+    HR_DEPARTMENTS {
+        number DEPARTMENT_ID
+        string DEPARTMENT_NAME
+        string COST_CENTER
+        number MANAGER_EMPLOYEE_ID
+        string LOCATION
     }
-    TEMP_TABLE {
-        string NAME
+    HR_POSITIONS {
+        number POSITION_ID
+        string POSITION_TITLE
+        string JOB_FAMILY
+        string GRADE
+        boolean EXEMPT_FLAG
     }
-    HYBRID_TABLE {
-        string NAME
+    HR_BENEFITS {
+        number BENEFIT_ID
+        string BENEFIT_NAME
+        string PLAN_CODE
+        string PROVIDER
+        boolean ACTIVE_FLAG
     }
-    ICEBERG_TABLE {
-        string NAME
-    }
-    EXTERNAL_TABLE {
-        string NAME
-    }
-    DYNAMIC_TABLE {
-        string NAME
-        string PURPOSE
-    }
-
-    VIEW {
-        string NAME
-    }
-    MATERIALIZED_VIEW {
-        string NAME
-    }
-    SEMANTIC_VIEW {
-        string NAME
-    }
-
-    STREAM {
-        string NAME
-    }
-    SEQUENCE {
-        string NAME
-    }
-    TASK {
-        string NAME
-        string SCHEDULE
-    }
-    FUNCTION {
-        string NAME
-    }
-    PROCEDURE {
-        string NAME
+    HR_TIME_OFF_REQUESTS {
+        number REQUEST_ID
+        number EMPLOYEE_ID
+        date START_DATE
+        date END_DATE
+        number REQUESTED_DAYS
+        string STATUS
     }
 
-    MASKING_POLICY {
-        string NAME
+    FINANCE_ACCOUNTS {
+        number ACCOUNT_ID
+        string ACCOUNT_NUMBER
+        string ACCOUNT_NAME
+        string ACCOUNT_TYPE
+        string GL_CODE
     }
-    ROW_ACCESS_POLICY {
-        string NAME
+    FINANCE_TRANSACTIONS {
+        number TRANSACTION_ID
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CURRENCY
+        string STATUS
     }
-    COLUMN {
-        string NAME
-        string DATA_TYPE
+    FINANCE_BUDGETS {
+        number BUDGET_ID
+        number FISCAL_YEAR
+        number DEPARTMENT_ID
+        number AMOUNT
+        boolean APPROVED_FLAG
+    }
+    FINANCE_INVOICES {
+        number INVOICE_ID
+        string INVOICE_NUMBER
+        number VENDOR_ID
+        date INVOICE_DATE
+        number TOTAL_AMOUNT
+        string STATUS
+    }
+    FINANCE_PAYMENTS {
+        number PAYMENT_ID
+        number INVOICE_ID
+        date PAYMENT_DATE
+        number AMOUNT
+        string METHOD
     }
 
-    SHARE {
-        string NAME
+    MARKETING_CAMPAIGNS {
+        number CAMPAIGN_ID
+        string CAMPAIGN_NAME
+        string CAMPAIGN_TYPE
+        date START_DATE
+        date END_DATE
+        string STATUS
+    }
+    MARKETING_LEADS {
+        number LEAD_ID
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+        string SOURCE
+        string STATUS
+    }
+    MARKETING_CHANNELS {
+        number CHANNEL_ID
+        string CHANNEL_NAME
+        string CHANNEL_TYPE
+        string PLATFORM
+        boolean ACTIVE_FLAG
+    }
+    MARKETING_CONTENT {
+        number CONTENT_ID
+        string TITLE
+        string CONTENT_TYPE
+        string AUTHOR
+        date PUBLISHED_DATE
+    }
+    MARKETING_ENGAGEMENTS {
+        number ENGAGEMENT_ID
+        number CAMPAIGN_ID
+        number CHANNEL_ID
+        date ENGAGEMENT_DATE
+        string EVENT_TYPE
+        number METRIC_VALUE
     }
 
-    DATABASE ||--o{ SCHEMA : has
-    SCHEMA ||--o{ STAGE : contains
-    SCHEMA ||--o{ PERMANENT_TABLE : contains
-    SCHEMA ||--o{ TRANSIENT_TABLE : contains
-    SCHEMA ||--o{ TEMP_TABLE : contains
-    SCHEMA ||--o{ HYBRID_TABLE : contains
-    SCHEMA ||--o{ ICEBERG_TABLE : contains
-    SCHEMA ||--o{ EXTERNAL_TABLE : contains
-    SCHEMA ||--o{ DYNAMIC_TABLE : contains
-    SCHEMA ||--o{ VIEW : contains
-    SCHEMA ||--o{ MATERIALIZED_VIEW : contains
-    SCHEMA ||--o{ SEMANTIC_VIEW : contains
-    SCHEMA ||--o{ STREAM : contains
-    SCHEMA ||--o{ SEQUENCE : contains
-    SCHEMA ||--o{ TASK : contains
-    SCHEMA ||--o{ FUNCTION : contains
-    SCHEMA ||--o{ PROCEDURE : contains
-    SCHEMA ||--o{ MASKING_POLICY : contains
-    SCHEMA ||--o{ ROW_ACCESS_POLICY : contains
+    HR_TRN_EMPLOYEE_EVENTS {
+        number EVENT_ID
+        number EMPLOYEE_ID
+        string EVENT_TYPE
+        timestamp EVENT_TS
+        string SOURCE_SYSTEM
+    }
+    HR_TRN_BENEFIT_ENROLLMENTS {
+        number ENROLLMENT_ID
+        number EMPLOYEE_ID
+        number BENEFIT_ID
+        string PLAN_CODE
+        date EFFECTIVE_DATE
+    }
+    FINANCE_TRN_PAYMENT_EVENTS {
+        number PAYMENT_EVENT_ID
+        number PAYMENT_ID
+        string EVENT_TYPE
+        timestamp EVENT_TS
+        number AMOUNT
+    }
+    FINANCE_TRN_GL_STAGING {
+        number ENTRY_ID
+        string JOURNAL_ID
+        number ACCOUNT_ID
+        string GL_ACCOUNT
+        number AMOUNT
+    }
+    MARKETING_TRN_LEAD_EVENTS {
+        number LEAD_EVENT_ID
+        number LEAD_ID
+        string EVENT_TYPE
+        timestamp EVENT_TS
+        string SOURCE
+    }
+    MARKETING_TRN_ATTRIBUTION_EVENTS {
+        number ATTRIBUTION_ID
+        number CAMPAIGN_ID
+        number CHANNEL_ID
+        string TOUCHPOINT
+        number WEIGHT
+    }
 
-    STAGE }o--|| STORAGE_INTEGRATION : uses
-    STAGE }o--|| FILE_FORMAT : uses
-    EXTERNAL_TABLE }o--|| STAGE : reads_from
-    EXTERNAL_TABLE }o--|| FILE_FORMAT : parses_with
+    HR_TMP_PAYROLL_CALC {
+        number EMPLOYEE_ID
+        string PAY_PERIOD
+        number GROSS_PAY
+        number NET_PAY
+    }
+    HR_TMP_HIRING_PIPELINE {
+        number CANDIDATE_ID
+        string ROLE
+        string STAGE
+        string SOURCE
+    }
+    FINANCE_TMP_FORECAST {
+        number FORECAST_ID
+        string FISCAL_MONTH
+        number FORECAST_AMOUNT
+        string SCENARIO
+    }
+    FINANCE_TMP_CASHFLOW {
+        date FLOW_DATE
+        number INCOMING
+        number OUTGOING
+        number NET_FLOW
+    }
+    MARKETING_TMP_SPEND_ALLOCATION {
+        number CAMPAIGN_ID
+        number CHANNEL_ID
+        number BUDGET
+        number ALLOCATION_PCT
+    }
+    MARKETING_TMP_LEAD_SCORES {
+        number LEAD_ID
+        number SCORE
+        string MODEL_VERSION
+        timestamp SCORED_AT
+    }
 
-    ICEBERG_TABLE }o--|| EXTERNAL_VOLUME : uses
-    EXTERNAL_VOLUME }o--|| STORAGE_INTEGRATION : uses
+    HR_EXT_EMPLOYEES_RAW {
+        number EMPLOYEE_ID
+        string EMPLOYEE_NUMBER
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+    }
+    FINANCE_EXT_TRANSACTIONS_RAW {
+        number TRANSACTION_ID
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CURRENCY
+    }
+    MARKETING_EXT_LEADS_RAW {
+        number LEAD_ID
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+        string STATUS
+    }
 
-    WAREHOUSE ||--o{ TASK : runs_on
-    WAREHOUSE ||--o{ DYNAMIC_TABLE : refreshes
-    PROCEDURE }o--o{ TASK : invoked_by
+    HR_ICEBERG_EMPLOYEES {
+        number EMPLOYEE_ID
+        string EMPLOYEE_NUMBER
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+    }
+    FINANCE_ICEBERG_TRANSACTIONS {
+        number TRANSACTION_ID
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CURRENCY
+    }
 
-    PERMANENT_TABLE ||--o{ COLUMN : has
-    TRANSIENT_TABLE ||--o{ COLUMN : has
-    TEMP_TABLE ||--o{ COLUMN : has
-    HYBRID_TABLE ||--o{ COLUMN : has
-    ICEBERG_TABLE ||--o{ COLUMN : has
-    EXTERNAL_TABLE ||--o{ COLUMN : has
-    DYNAMIC_TABLE ||--o{ COLUMN : has
+    HR_HYBRID_EMPLOYEE_DIM {
+        number EMPLOYEE_ID
+        string FULL_NAME
+        string EMAIL
+        number DEPARTMENT_ID
+        string JOB_TITLE
+    }
+    FINANCE_HYBRID_ACCOUNT_DIM {
+        number ACCOUNT_ID
+        string ACCOUNT_NAME
+        string ACCOUNT_TYPE
+        string STATUS
+    }
 
-    PERMANENT_TABLE }o--o{ VIEW : source_of
-    PERMANENT_TABLE }o--o{ MATERIALIZED_VIEW : source_of
-    PERMANENT_TABLE }o--o{ SEMANTIC_VIEW : source_of
-    PERMANENT_TABLE ||--o{ STREAM : stream_on
-    PERMANENT_TABLE }o--o{ DYNAMIC_TABLE : source_of
-    SEQUENCE }o--o{ PERMANENT_TABLE : used_by
+    HR_EMPLOYEE_DIRECTORY {
+        string EMPLOYEE_NAME
+        string EMAIL
+        string DEPARTMENT_NAME
+    }
+    HR_TIME_OFF_OVERVIEW {
+        number REQUEST_ID
+        date START_DATE
+        date END_DATE
+        string STATUS
+    }
+    FINANCE_OPEN_INVOICES {
+        number INVOICE_ID
+        string INVOICE_NUMBER
+        date DUE_DATE
+        number TOTAL_AMOUNT
+    }
+    FINANCE_ACCOUNT_ACTIVITY {
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CATEGORY
+    }
+    MARKETING_CAMPAIGN_PERFORMANCE {
+        number CAMPAIGN_ID
+        date ENGAGEMENT_DATE
+        string EVENT_TYPE
+        number METRIC_VALUE
+    }
+    MARKETING_LEAD_SOURCES {
+        number LEAD_ID
+        string SOURCE
+        string STATUS
+    }
 
-    MASKING_POLICY }o--o{ COLUMN : applied_to
-    ROW_ACCESS_POLICY }o--o{ PERMANENT_TABLE : applied_to
+    HR_MV_EMP_COUNT_BY_DEPT {
+        number DEPARTMENT_ID
+        number EMPLOYEE_COUNT
+    }
+    FINANCE_MV_DAILY_PAYMENTS {
+        date PAYMENT_DATE
+        number TOTAL_AMOUNT
+    }
 
-    SHARE }o--o{ DATABASE : shares_db
-    SHARE }o--o{ VIEW : shares_view
-    SHARE }o--o{ PERMANENT_TABLE : shares_table
+    HR_SEM_EMPLOYEE {
+        number EMPLOYEE_ID
+        number EMP_COUNT
+    }
+    FINANCE_SEM_TRANSACTIONS {
+        number TRANSACTION_ID
+        number TOTAL_AMOUNT
+    }
+
+    HR_EMPLOYEES_STREAM {
+        string HR.EMPLOYEES_STREAM
+    }
+    FINANCE_INVOICES_STREAM {
+        string FINANCE.INVOICES_STREAM
+    }
+    MARKETING_LEADS_STREAM {
+        string MARKETING.LEADS_STREAM
+    }
+
+    HR_EMPLOYEE_ROSTER_DT {
+        number EMPLOYEE_ID
+        string DEPARTMENT_NAME
+    }
+    FINANCE_DAILY_TRANSACTIONS_DT {
+        date TRANSACTION_DATE
+        string CURRENCY
+        number TOTAL_AMOUNT
+    }
+    MARKETING_CAMPAIGN_METRICS_DT {
+        number CAMPAIGN_ID
+        string EVENT_TYPE
+        number ENGAGEMENT_COUNT
+    }
+    HR_EMPLOYEE_EVENTS_DT {
+        date EVENT_DATE
+        string EVENT_TYPE
+        number EVENT_COUNT
+    }
+    FINANCE_PAYMENT_EVENTS_DT {
+        date EVENT_DATE
+        string PAYMENT_STATUS
+        number EVENT_COUNT
+    }
+
+    HR_DB ||--|| HR_PUBLIC_SCHEMA : contains
+    FINANCE_DB ||--|| FINANCE_PUBLIC_SCHEMA : contains
+    MARKETING_DB ||--|| MARKETING_PUBLIC_SCHEMA : contains
+
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_DEPARTMENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_POSITIONS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_BENEFITS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_REQUESTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_EMPLOYEE_EVENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_BENEFIT_ENROLLMENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_PAYROLL_CALC : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_HIRING_PIPELINE : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EXT_EMPLOYEES_RAW : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_ICEBERG_EMPLOYEES : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_HYBRID_EMPLOYEE_DIM : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_DIRECTORY : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_OVERVIEW : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_MV_EMP_COUNT_BY_DEPT : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_SEM_EMPLOYEE : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES_STREAM : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_ROSTER_DT : contains
+
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_BUDGETS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_PAYMENT_EVENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_GL_STAGING : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_FORECAST : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_CASHFLOW : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_EXT_TRANSACTIONS_RAW : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ICEBERG_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_HYBRID_ACCOUNT_DIM : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_OPEN_INVOICES : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNT_ACTIVITY : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_MV_DAILY_PAYMENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_SEM_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES_STREAM : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_DAILY_TRANSACTIONS_DT : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENT_EVENTS_DT : contains
+
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGNS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEADS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CHANNELS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CONTENT : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_ENGAGEMENTS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_TRN_LEAD_EVENTS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_TRN_ATTRIBUTION_EVENTS : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_TMP_SPEND_ALLOCATION : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_TMP_LEAD_SCORES : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_EXT_LEADS_RAW : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGN_PERFORMANCE : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEAD_SOURCES : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGN_METRICS_DT : contains
+    MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEADS_STREAM : contains
+
+    HR_DEPARTMENTS ||--o{ HR_EMPLOYEES : employs
+    HR_EMPLOYEES ||--o{ HR_TIME_OFF_REQUESTS : requests
+
+    FINANCE_ACCOUNTS ||--o{ FINANCE_TRANSACTIONS : posts
+    FINANCE_INVOICES ||--o{ FINANCE_PAYMENTS : paid_by
+
+    MARKETING_CAMPAIGNS ||--o{ MARKETING_ENGAGEMENTS : drives
+    MARKETING_CHANNELS ||--o{ MARKETING_ENGAGEMENTS : records
 ```
-</details>
 
-## What I provision
-
-- Warehouses: small, medium, large
-- Databases: HR, FINANCE, MARKETING
-- Schemas: PUBLIC for each DB
-- Tables: 5 per database (core entities)
-- Views + materialized views
-- Semantic views
-- Sequences
-- Streams on tables
-- Dynamic tables (including event-style rollups)
-- Stages: RAW / SILVER / GOLD per database
-- External tables (RAW zone)
-- Tasks (scheduled)
-- Functions + procedures (simple SQL)
-- Masking policies (column-level) + row access policies (row-level)
-- Iceberg tables (via SQL)
-- Hybrid tables (via SQL)
-- Event tables (via SQL)
-- Shares + grants
-- Transient + temporary tables (via SQL)
-
-## Repository structure
-
-```
-Snowflake.IAC/
-  envs/
-    dev/
-      terraform.tf
-      variables.tf
-      outputs.tf
-      terraform.tfvars.example
-      locals.*.tf
-      *.tf
-  modules/
-    warehouse/
-    database/
-    schema/
-    table/
-    view/
-    sequence/
-    stream_on_table/
-    dynamic_table/
-    stage/
-    materialized_view/
-    semantic_view/
-    task/
-    function_sql/
-    procedure_sql/
-    masking_policy/
-    row_access_policy/
-    external_table/
-    share/
-    grant_privileges_to_share/
-    table_column_masking_policy_application/
-```
 
 ## Prerequisites
 
@@ -354,7 +572,79 @@ snow sql --filename copy_into.sql
 terraform destroy -var-file=terraform.tfvars
 ```
 
-## Objects created
+## Objects Created
+
+## Object Inventory
+
+<!-- OBJECT_INVENTORY_START -->
+| Category | Type | Names |
+| --- | --- | --- |
+| Platform | Warehouse | `DEV_WH_SMALL`, `DEV_WH_MEDIUM`, `DEV_WH_LARGE` |
+| Core | Database | `HR`, `FINANCE`, `MARKETING` |
+| Core | Schema | `HR.PUBLIC`, `FINANCE.PUBLIC`, `MARKETING.PUBLIC` |
+| Core | Sequence | `HR_EMPLOYEE_SEQ`, `HR_REQUEST_SEQ`, `FINANCE_INVOICE_SEQ`, `FINANCE_PAYMENT_SEQ`, `MARKETING_CAMPAIGN_SEQ`, `MARKETING_LEAD_SEQ` |
+| Data | Stage | `HR.RAW_STAGE`, `HR.SILVER_STAGE`, `HR.GOLD_STAGE`, `FINANCE.RAW_STAGE`, `FINANCE.SILVER_STAGE`, `FINANCE.GOLD_STAGE`, `MARKETING.RAW_STAGE`, `MARKETING.SILVER_STAGE`, `MARKETING.GOLD_STAGE` |
+| Data | Table (base) | `HR.EMPLOYEES`, `HR.DEPARTMENTS`, `HR.POSITIONS`, `HR.BENEFITS`, `HR.TIME_OFF_REQUESTS`, `FINANCE.ACCOUNTS`, `FINANCE.TRANSACTIONS`, `FINANCE.BUDGETS`, `FINANCE.INVOICES`, `FINANCE.PAYMENTS`, `MARKETING.CAMPAIGNS`, `MARKETING.LEADS`, `MARKETING.CHANNELS`, `MARKETING.CONTENT`, `MARKETING.ENGAGEMENTS` |
+| Data | Table (transient) | `HR.TRN_EMPLOYEE_EVENTS`, `HR.TRN_BENEFIT_ENROLLMENTS`, `FINANCE.TRN_PAYMENT_EVENTS`, `FINANCE.TRN_GL_STAGING`, `MARKETING.TRN_LEAD_EVENTS`, `MARKETING.TRN_ATTRIBUTION_EVENTS` |
+| Data | Table (temporary) | `HR.TMP_PAYROLL_CALC`, `HR.TMP_HIRING_PIPELINE`, `FINANCE.TMP_FORECAST`, `FINANCE.TMP_CASHFLOW`, `MARKETING.TMP_SPEND_ALLOCATION`, `MARKETING.TMP_LEAD_SCORES` |
+| Data | External table | `HR.EXT_EMPLOYEES_RAW`, `FINANCE.EXT_TRANSACTIONS_RAW`, `MARKETING.EXT_LEADS_RAW` |
+| Data | Iceberg table | `HR.ICEBERG_EMPLOYEES`, `FINANCE.ICEBERG_TRANSACTIONS` |
+| Data | Hybrid table | `HR.HYBRID_EMPLOYEE_DIM`, `FINANCE.HYBRID_ACCOUNT_DIM` |
+| Data | Event table | `HR.EVENTS`, `FINANCE.EVENTS` |
+| Data | View | `HR.EMPLOYEE_DIRECTORY`, `HR.TIME_OFF_OVERVIEW`, `FINANCE.OPEN_INVOICES`, `FINANCE.ACCOUNT_ACTIVITY`, `MARKETING.CAMPAIGN_PERFORMANCE`, `MARKETING.LEAD_SOURCES` |
+| Data | Materialized view | `HR.MV_EMP_COUNT_BY_DEPT`, `FINANCE.MV_DAILY_PAYMENTS` |
+| Data | Semantic view | `HR.SEM_EMPLOYEE`, `FINANCE.SEM_TRANSACTIONS` |
+| Data | Stream | `HR.EMPLOYEES_STREAM`, `FINANCE.INVOICES_STREAM`, `MARKETING.LEADS_STREAM` |
+| Data | Dynamic table | `HR.EMPLOYEE_ROSTER_DT`, `FINANCE.DAILY_TRANSACTIONS_DT`, `MARKETING.CAMPAIGN_METRICS_DT`, `HR.EMPLOYEE_EVENTS_DT`, `FINANCE.PAYMENT_EVENTS_DT` |
+| Automation | Task | `HR.EMPLOYEE_EVENT_TASK`, `FINANCE.PAYMENT_ROLLUP_TASK` |
+| Code | Function | `HR.NORMALIZE_EMAIL`, `FINANCE.FISCAL_YEAR` |
+| Code | Procedure | `HR.LOG_EMP_EVENT`, `FINANCE.RECALC_DAILY_TRANSACTIONS` |
+| Security | Masking policy | `HR.EMAIL_MASK`, `FINANCE.AMOUNT_MASK` |
+| Security | Row access policy | `HR.EMPLOYEE_RAP` |
+<!-- OBJECT_INVENTORY_END -->
+
+## Table columns (detail)
+
+<!-- TABLE_COLUMNS_START -->
+| Table | Columns |
+| --- | --- |
+| `FINANCE.ACCOUNTS` | `ACCOUNT_ID NUMBER(38,0)`, `ACCOUNT_NUMBER VARCHAR(30)`, `ACCOUNT_NAME VARCHAR(150)`, `ACCOUNT_TYPE VARCHAR(50)`, `GL_CODE VARCHAR(20)`, `STATUS VARCHAR(20)`, `OWNER_DEPARTMENT_ID NUMBER(38,0)`, `OPENED_DATE DATE`, `CLOSED_DATE DATE`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.BUDGETS` | `BUDGET_ID NUMBER(38,0)`, `FISCAL_YEAR NUMBER(4,0)`, `DEPARTMENT_ID NUMBER(38,0)`, `AMOUNT NUMBER(18,2)`, `APPROVED_FLAG BOOLEAN`, `APPROVED_BY NUMBER(38,0)`, `APPROVED_AT TIMESTAMP_NTZ`, `CREATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.EVENTS` | `(event table schema is Snowflake-managed)` |
+| `FINANCE.EXT_TRANSACTIONS_RAW` | `TRANSACTION_ID NUMBER(38,0)`, `ACCOUNT_ID NUMBER(38,0)`, `TRANSACTION_DATE DATE`, `AMOUNT NUMBER(18,2)`, `CURRENCY VARCHAR`, `DESCRIPTION VARCHAR`, `MERCHANT_NAME VARCHAR`, `CATEGORY VARCHAR`, `STATUS VARCHAR` |
+| `FINANCE.HYBRID_ACCOUNT_DIM` | `ACCOUNT_ID NUMBER NOT NULL`, `ACCOUNT_NAME STRING`, `ACCOUNT_TYPE STRING`, `STATUS STRING`, `UPDATED_AT TIMESTAMP_NTZ`, `PRIMARY KEY (ACCOUNT_ID)` |
+| `FINANCE.ICEBERG_TRANSACTIONS` | `TRANSACTION_ID NUMBER`, `ACCOUNT_ID NUMBER`, `TRANSACTION_DATE DATE`, `POSTED_TS TIMESTAMP_NTZ`, `DESCRIPTION STRING`, `AMOUNT NUMBER(18,2)`, `CURRENCY STRING`, `STATUS STRING` |
+| `FINANCE.INVOICES` | `INVOICE_ID NUMBER(38,0)`, `INVOICE_NUMBER VARCHAR(40)`, `VENDOR_ID NUMBER(38,0)`, `INVOICE_DATE DATE`, `DUE_DATE DATE`, `TOTAL_AMOUNT NUMBER(18,2)`, `STATUS VARCHAR(20)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.PAYMENTS` | `PAYMENT_ID NUMBER(38,0)`, `INVOICE_ID NUMBER(38,0)`, `PAYMENT_DATE DATE`, `AMOUNT NUMBER(18,2)`, `METHOD VARCHAR(30)`, `PAYMENT_STATUS VARCHAR(20)`, `REFERENCE_NUMBER VARCHAR(50)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.TMP_CASHFLOW` | `FLOW_DATE DATE`, `INCOMING NUMBER(18,2)`, `OUTGOING NUMBER(18,2)`, `NET_FLOW NUMBER(18,2)`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.TMP_FORECAST` | `FORECAST_ID NUMBER(38,0)`, `FISCAL_MONTH VARCHAR(7)`, `FORECAST_AMOUNT NUMBER(18,2)`, `SCENARIO VARCHAR(50)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `FINANCE.TRANSACTIONS` | `TRANSACTION_ID NUMBER(38,0)`, `ACCOUNT_ID NUMBER(38,0)`, `TRANSACTION_DATE DATE`, `POSTED_TS TIMESTAMP_NTZ`, `DESCRIPTION VARCHAR(200)`, `MERCHANT_NAME VARCHAR(150)`, `CATEGORY VARCHAR(50)`, `AMOUNT NUMBER(18,2)`, `CURRENCY VARCHAR(3)`, `STATUS VARCHAR(20)` |
+| `FINANCE.TRN_GL_STAGING` | `ENTRY_ID NUMBER(38,0)`, `JOURNAL_ID VARCHAR(40)`, `ACCOUNT_ID NUMBER(38,0)`, `GL_ACCOUNT VARCHAR(20)`, `AMOUNT NUMBER(18,2)`, `POSTED_DATE DATE`, `DESCRIPTION VARCHAR(200)` |
+| `FINANCE.TRN_PAYMENT_EVENTS` | `PAYMENT_EVENT_ID NUMBER(38,0)`, `PAYMENT_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(50)`, `EVENT_TS TIMESTAMP_NTZ`, `AMOUNT NUMBER(18,2)`, `STATUS VARCHAR(20)` |
+| `HR.BENEFITS` | `BENEFIT_ID NUMBER(38,0)`, `BENEFIT_NAME VARCHAR(150)`, `BENEFIT_TYPE VARCHAR(50)`, `PLAN_CODE VARCHAR(50)`, `PROVIDER VARCHAR(100)`, `COVERAGE_LEVEL VARCHAR(50)`, `EMPLOYEE_COST NUMBER(18,2)`, `EMPLOYER_COST NUMBER(18,2)`, `EFFECTIVE_DATE DATE`, `END_DATE DATE`, `ACTIVE_FLAG BOOLEAN` |
+| `HR.DEPARTMENTS` | `DEPARTMENT_ID NUMBER(38,0)`, `DEPARTMENT_NAME VARCHAR(100)`, `COST_CENTER VARCHAR(50)`, `MANAGER_EMPLOYEE_ID NUMBER(38,0)`, `LOCATION VARCHAR(100)`, `BUDGET_AMOUNT NUMBER(18,2)`, `ACTIVE_FLAG BOOLEAN`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `HR.EMPLOYEES` | `EMPLOYEE_ID NUMBER(38,0)`, `EMPLOYEE_NUMBER VARCHAR(30)`, `FIRST_NAME VARCHAR(100)`, `MIDDLE_NAME VARCHAR(100)`, `LAST_NAME VARCHAR(100)`, `PREFERRED_NAME VARCHAR(100)`, `EMAIL VARCHAR(200)`, `PHONE VARCHAR(30)`, `HIRE_DATE DATE`, `JOB_TITLE VARCHAR(150)`, `DEPARTMENT_ID NUMBER(38,0)`, `MANAGER_ID NUMBER(38,0)`, `LOCATION VARCHAR(100)`, `EMPLOYMENT_STATUS VARCHAR(30)`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY VARCHAR(3)`, `LAST_PROMOTION_DATE DATE`, `TERMINATION_DATE DATE`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `HR.EVENTS` | `(event table schema is Snowflake-managed)` |
+| `HR.EXT_EMPLOYEES_RAW` | `EMPLOYEE_ID NUMBER(38,0)`, `EMPLOYEE_NUMBER VARCHAR`, `FIRST_NAME VARCHAR`, `LAST_NAME VARCHAR`, `EMAIL VARCHAR`, `HIRE_DATE DATE`, `DEPARTMENT_ID NUMBER(38,0)`, `JOB_TITLE VARCHAR`, `EMPLOYMENT_STATUS VARCHAR`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY VARCHAR` |
+| `HR.HYBRID_EMPLOYEE_DIM` | `EMPLOYEE_ID NUMBER NOT NULL`, `FULL_NAME STRING`, `EMAIL STRING`, `DEPARTMENT_ID NUMBER`, `JOB_TITLE STRING`, `EMPLOYMENT_STATUS STRING`, `UPDATED_AT TIMESTAMP_NTZ`, `PRIMARY KEY (EMPLOYEE_ID)` |
+| `HR.ICEBERG_EMPLOYEES` | `EMPLOYEE_ID NUMBER`, `EMPLOYEE_NUMBER STRING`, `FIRST_NAME STRING`, `LAST_NAME STRING`, `EMAIL STRING`, `HIRE_DATE DATE`, `JOB_TITLE STRING`, `DEPARTMENT_ID NUMBER`, `EMPLOYMENT_STATUS STRING`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY STRING` |
+| `HR.POSITIONS` | `POSITION_ID NUMBER(38,0)`, `POSITION_TITLE VARCHAR(150)`, `JOB_FAMILY VARCHAR(80)`, `GRADE VARCHAR(20)`, `EXEMPT_FLAG BOOLEAN`, `MIN_SALARY NUMBER(18,2)`, `MAX_SALARY NUMBER(18,2)`, `CREATED_AT TIMESTAMP_NTZ`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `HR.TIME_OFF_REQUESTS` | `REQUEST_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `START_DATE DATE`, `END_DATE DATE`, `REQUESTED_DAYS NUMBER(5,2)`, `STATUS VARCHAR(30)`, `REASON VARCHAR(200)`, `REQUESTED_AT TIMESTAMP_NTZ`, `APPROVED_BY NUMBER(38,0)`, `APPROVED_AT TIMESTAMP_NTZ` |
+| `HR.TMP_HIRING_PIPELINE` | `CANDIDATE_ID NUMBER(38,0)`, `ROLE VARCHAR(100)`, `STAGE VARCHAR(50)`, `SOURCE VARCHAR(50)`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `HR.TMP_PAYROLL_CALC` | `EMPLOYEE_ID NUMBER(38,0)`, `PAY_PERIOD VARCHAR(20)`, `GROSS_PAY NUMBER(18,2)`, `NET_PAY NUMBER(18,2)`, `TAX_WITHHELD NUMBER(18,2)`, `CALCULATED_AT TIMESTAMP_NTZ` |
+| `HR.TRN_BENEFIT_ENROLLMENTS` | `ENROLLMENT_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `BENEFIT_ID NUMBER(38,0)`, `PLAN_CODE VARCHAR(50)`, `EFFECTIVE_DATE DATE`, `ENROLLMENT_STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `HR.TRN_EMPLOYEE_EVENTS` | `EVENT_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(100)`, `EVENT_TS TIMESTAMP_NTZ`, `SOURCE_SYSTEM VARCHAR(50)`, `EVENT_PAYLOAD VARIANT` |
+| `MARKETING.CAMPAIGNS` | `CAMPAIGN_ID NUMBER(38,0)`, `CAMPAIGN_NAME VARCHAR(150)`, `CAMPAIGN_TYPE VARCHAR(50)`, `START_DATE DATE`, `END_DATE DATE`, `STATUS VARCHAR(30)`, `BUDGET NUMBER(18,2)`, `OWNER VARCHAR(100)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.CHANNELS` | `CHANNEL_ID NUMBER(38,0)`, `CHANNEL_NAME VARCHAR(100)`, `CHANNEL_TYPE VARCHAR(50)`, `PLATFORM VARCHAR(50)`, `REGION VARCHAR(50)`, `COST_PER_LEAD NUMBER(18,2)`, `ACTIVE_FLAG BOOLEAN`, `CREATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.CONTENT` | `CONTENT_ID NUMBER(38,0)`, `TITLE VARCHAR(200)`, `CONTENT_TYPE VARCHAR(50)`, `AUTHOR VARCHAR(100)`, `URL VARCHAR(500)`, `WORD_COUNT NUMBER(10,0)`, `PUBLISHED_DATE DATE`, `STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.ENGAGEMENTS` | `ENGAGEMENT_ID NUMBER(38,0)`, `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `ENGAGEMENT_DATE DATE`, `EVENT_TYPE VARCHAR(50)`, `SOURCE VARCHAR(50)`, `METRIC_VALUE NUMBER(18,2)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.EXT_LEADS_RAW` | `LEAD_ID NUMBER(38,0)`, `FIRST_NAME VARCHAR`, `LAST_NAME VARCHAR`, `EMAIL VARCHAR`, `PHONE VARCHAR`, `COMPANY VARCHAR`, `SOURCE VARCHAR`, `STATUS VARCHAR` |
+| `MARKETING.LEADS` | `LEAD_ID NUMBER(38,0)`, `FIRST_NAME VARCHAR(100)`, `LAST_NAME VARCHAR(100)`, `EMAIL VARCHAR(200)`, `PHONE VARCHAR(30)`, `COMPANY VARCHAR(150)`, `TITLE VARCHAR(100)`, `SOURCE VARCHAR(50)`, `STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.TMP_LEAD_SCORES` | `LEAD_ID NUMBER(38,0)`, `SCORE NUMBER(5,2)`, `MODEL_VERSION VARCHAR(20)`, `SCORED_AT TIMESTAMP_NTZ`, `SCORE_REASON VARCHAR(200)` |
+| `MARKETING.TMP_SPEND_ALLOCATION` | `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `BUDGET NUMBER(18,2)`, `ALLOCATION_PCT NUMBER(5,2)`, `UPDATED_AT TIMESTAMP_NTZ` |
+| `MARKETING.TRN_ATTRIBUTION_EVENTS` | `ATTRIBUTION_ID NUMBER(38,0)`, `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `TOUCHPOINT VARCHAR(100)`, `MODEL VARCHAR(50)`, `WEIGHT NUMBER(9,4)`, `EVENT_TS TIMESTAMP_NTZ` |
+| `MARKETING.TRN_LEAD_EVENTS` | `LEAD_EVENT_ID NUMBER(38,0)`, `LEAD_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(50)`, `EVENT_TS TIMESTAMP_NTZ`, `SOURCE VARCHAR(50)`, `SCORE NUMBER(5,2)`, `EVENT_PAYLOAD VARIANT` |
+<!-- TABLE_COLUMNS_END -->
 
 ### Warehouses
 - `DEV_WH_SMALL`
@@ -366,7 +656,7 @@ terraform destroy -var-file=terraform.tfvars
 - `FINANCE`
 - `MARKETING`
 
-### Tables (5 per database)
+### Tables
 - HR: `EMPLOYEES`, `DEPARTMENTS`, `POSITIONS`, `BENEFITS`, `TIME_OFF_REQUESTS`
 - FINANCE: `ACCOUNTS`, `TRANSACTIONS`, `BUDGETS`, `INVOICES`, `PAYMENTS`
 - MARKETING: `CAMPAIGNS`, `LEADS`, `CHANNELS`, `CONTENT`, `ENGAGEMENTS`
