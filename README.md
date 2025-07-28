@@ -329,13 +329,13 @@ erDiagram
     }
 
     HR_EMPLOYEES_STREAM {
-        string HR.EMPLOYEES_STREAM
+        string STREAM_NAME
     }
     FINANCE_INVOICES_STREAM {
-        string FINANCE.INVOICES_STREAM
+        string STREAM_NAME
     }
     MARKETING_LEADS_STREAM {
-        string MARKETING.LEADS_STREAM
+        string STREAM_NAME
     }
 
     HR_EMPLOYEE_ROSTER_DT {
