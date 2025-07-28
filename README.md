@@ -2,7 +2,65 @@
 
 This repo is my end-to-end Snowflake IaC demo. I use Terraform to provision a realistic analytics footprint: warehouses, databases, schemas, tables, views, sequences, streams, dynamic tables, stages, external tables, tasks, functions, procedures, masking policies, row access policies, Iceberg tables, hybrid tables, event tables, and data shares. I also show how I load data from stages into tables and how I run ad‑hoc SQL with SnowCLI.
 
-## ER diagram
+## ER diagrams
+
+### Account-level objects
+
+```mermaid
+%%{init: {"er": {"layoutDirection": "LR"}}}%%
+erDiagram
+    ACCOUNT_LEVEL {
+        string ACCOUNT
+    }
+    WAREHOUSE {
+        string DEV_WH_SMALL
+        string DEV_WH_MEDIUM
+        string DEV_WH_LARGE
+    }
+    STAGE {
+        string HR_RAW_STAGE
+        string HR_SILVER_STAGE
+        string HR_GOLD_STAGE
+        string FINANCE_RAW_STAGE
+        string FINANCE_SILVER_STAGE
+        string FINANCE_GOLD_STAGE
+        string MARKETING_RAW_STAGE
+        string MARKETING_SILVER_STAGE
+        string MARKETING_GOLD_STAGE
+    }
+    SEQUENCE {
+        string HR_EMPLOYEE_SEQ
+        string HR_REQUEST_SEQ
+        string FINANCE_INVOICE_SEQ
+        string FINANCE_PAYMENT_SEQ
+        string MARKETING_CAMPAIGN_SEQ
+        string MARKETING_LEAD_SEQ
+    }
+    MASKING_POLICY {
+        string HR_EMAIL_MASK
+        string FINANCE_AMOUNT_MASK
+    }
+    ROW_ACCESS_POLICY {
+        string HR_EMPLOYEE_RAP
+    }
+    SHARE {
+        string HR_SHARE_DB
+        string HR_SHARE_SCHEMA
+        string HR_SHARE_TABLES
+        string FINANCE_SHARE_DB
+        string FINANCE_SHARE_SCHEMA
+        string FINANCE_SHARE_TABLES
+    }
+
+    ACCOUNT_LEVEL ||--o{ WAREHOUSE : contains
+    ACCOUNT_LEVEL ||--o{ STAGE : contains
+    ACCOUNT_LEVEL ||--o{ SEQUENCE : contains
+    ACCOUNT_LEVEL ||--o{ MASKING_POLICY : contains
+    ACCOUNT_LEVEL ||--o{ ROW_ACCESS_POLICY : contains
+    ACCOUNT_LEVEL ||--o{ SHARE : contains
+```
+
+### HR DB
 
 ```mermaid
 %%{init: {"er": {"layoutDirection": "LR"}}}%%
@@ -11,18 +69,6 @@ erDiagram
         string HR
     }
     HR_PUBLIC_SCHEMA {
-        string PUBLIC
-    }
-    FINANCE_DB {
-        string FINANCE
-    }
-    FINANCE_PUBLIC_SCHEMA {
-        string PUBLIC
-    }
-    MARKETING_DB {
-        string MARKETING
-    }
-    MARKETING_PUBLIC_SCHEMA {
         string PUBLIC
     }
 
@@ -66,6 +112,122 @@ erDiagram
         number REQUESTED_DAYS
         string STATUS
     }
+    HR_TRN_EMPLOYEE_EVENTS {
+        number EVENT_ID
+        number EMPLOYEE_ID
+        string EVENT_TYPE
+        timestamp EVENT_TS
+        string SOURCE_SYSTEM
+    }
+    HR_TRN_BENEFIT_ENROLLMENTS {
+        number ENROLLMENT_ID
+        number EMPLOYEE_ID
+        number BENEFIT_ID
+        string PLAN_CODE
+        date EFFECTIVE_DATE
+    }
+    HR_TMP_PAYROLL_CALC {
+        number EMPLOYEE_ID
+        string PAY_PERIOD
+        number GROSS_PAY
+        number NET_PAY
+    }
+    HR_TMP_HIRING_PIPELINE {
+        number CANDIDATE_ID
+        string ROLE
+        string STAGE
+        string SOURCE
+    }
+    HR_EXT_EMPLOYEES_RAW {
+        number EMPLOYEE_ID
+        string EMPLOYEE_NUMBER
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+    }
+    HR_ICEBERG_EMPLOYEES {
+        number EMPLOYEE_ID
+        string EMPLOYEE_NUMBER
+        string FIRST_NAME
+        string LAST_NAME
+        string EMAIL
+    }
+    HR_HYBRID_EMPLOYEE_DIM {
+        number EMPLOYEE_ID
+        string FULL_NAME
+        string EMAIL
+        number DEPARTMENT_ID
+        string JOB_TITLE
+    }
+    HR_EMPLOYEE_DIRECTORY {
+        string EMPLOYEE_NAME
+        string EMAIL
+        string DEPARTMENT_NAME
+    }
+    HR_TIME_OFF_OVERVIEW {
+        number REQUEST_ID
+        date START_DATE
+        date END_DATE
+        string STATUS
+    }
+    HR_MV_EMP_COUNT_BY_DEPT {
+        number DEPARTMENT_ID
+        number EMPLOYEE_COUNT
+    }
+    HR_SEM_EMPLOYEE {
+        number EMPLOYEE_ID
+        number EMP_COUNT
+    }
+    HR_EMPLOYEES_STREAM {
+        string STREAM_NAME
+    }
+    HR_EMPLOYEE_ROSTER_DT {
+        number EMPLOYEE_ID
+        string DEPARTMENT_NAME
+    }
+    HR_EMPLOYEE_EVENTS_DT {
+        date EVENT_DATE
+        string EVENT_TYPE
+        number EVENT_COUNT
+    }
+    HR_EVENTS {
+        string EVENT_TABLE
+    }
+
+    HR_DB ||--|| HR_PUBLIC_SCHEMA : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_DEPARTMENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_POSITIONS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_BENEFITS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_REQUESTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_EMPLOYEE_EVENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_BENEFIT_ENROLLMENTS : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_PAYROLL_CALC : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_HIRING_PIPELINE : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EXT_EMPLOYEES_RAW : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_ICEBERG_EMPLOYEES : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_HYBRID_EMPLOYEE_DIM : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_DIRECTORY : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_OVERVIEW : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_MV_EMP_COUNT_BY_DEPT : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_SEM_EMPLOYEE : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES_STREAM : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_ROSTER_DT : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_EVENTS_DT : contains
+    HR_PUBLIC_SCHEMA ||--o{ HR_EVENTS : contains
+```
+
+### Finance DB
+
+```mermaid
+%%{init: {"er": {"layoutDirection": "LR"}}}%%
+erDiagram
+    FINANCE_DB {
+        string FINANCE
+    }
+    FINANCE_PUBLIC_SCHEMA {
+        string PUBLIC
+    }
 
     FINANCE_ACCOUNTS {
         number ACCOUNT_ID
@@ -103,6 +265,123 @@ erDiagram
         date PAYMENT_DATE
         number AMOUNT
         string METHOD
+    }
+    FINANCE_TRN_PAYMENT_EVENTS {
+        number PAYMENT_EVENT_ID
+        number PAYMENT_ID
+        string EVENT_TYPE
+        timestamp EVENT_TS
+        number AMOUNT
+    }
+    FINANCE_TRN_GL_STAGING {
+        number ENTRY_ID
+        string JOURNAL_ID
+        number ACCOUNT_ID
+        string GL_ACCOUNT
+        number AMOUNT
+    }
+    FINANCE_TMP_FORECAST {
+        number FORECAST_ID
+        string FISCAL_MONTH
+        number FORECAST_AMOUNT
+        string SCENARIO
+    }
+    FINANCE_TMP_CASHFLOW {
+        date FLOW_DATE
+        number INCOMING
+        number OUTGOING
+        number NET_FLOW
+    }
+    FINANCE_EXT_TRANSACTIONS_RAW {
+        number TRANSACTION_ID
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CURRENCY
+    }
+    FINANCE_ICEBERG_TRANSACTIONS {
+        number TRANSACTION_ID
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CURRENCY
+    }
+    FINANCE_HYBRID_ACCOUNT_DIM {
+        number ACCOUNT_ID
+        string ACCOUNT_NAME
+        string ACCOUNT_TYPE
+        string STATUS
+    }
+    FINANCE_OPEN_INVOICES {
+        number INVOICE_ID
+        string INVOICE_NUMBER
+        date DUE_DATE
+        number TOTAL_AMOUNT
+    }
+    FINANCE_ACCOUNT_ACTIVITY {
+        number ACCOUNT_ID
+        date TRANSACTION_DATE
+        number AMOUNT
+        string CATEGORY
+    }
+    FINANCE_MV_DAILY_PAYMENTS {
+        date PAYMENT_DATE
+        number TOTAL_AMOUNT
+    }
+    FINANCE_SEM_TRANSACTIONS {
+        number TRANSACTION_ID
+        number TOTAL_AMOUNT
+    }
+    FINANCE_INVOICES_STREAM {
+        string STREAM_NAME
+    }
+    FINANCE_DAILY_TRANSACTIONS_DT {
+        date TRANSACTION_DATE
+        string CURRENCY
+        number TOTAL_AMOUNT
+    }
+    FINANCE_PAYMENT_EVENTS_DT {
+        date EVENT_DATE
+        string PAYMENT_STATUS
+        number EVENT_COUNT
+    }
+    FINANCE_EVENTS {
+        string EVENT_TABLE
+    }
+
+    FINANCE_DB ||--|| FINANCE_PUBLIC_SCHEMA : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_BUDGETS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_PAYMENT_EVENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_GL_STAGING : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_FORECAST : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_CASHFLOW : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_EXT_TRANSACTIONS_RAW : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ICEBERG_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_HYBRID_ACCOUNT_DIM : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_OPEN_INVOICES : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNT_ACTIVITY : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_MV_DAILY_PAYMENTS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_SEM_TRANSACTIONS : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES_STREAM : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_DAILY_TRANSACTIONS_DT : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENT_EVENTS_DT : contains
+    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_EVENTS : contains
+```
+
+### Marketing DB
+
+```mermaid
+%%{init: {"er": {"layoutDirection": "LR"}}}%%
+erDiagram
+    MARKETING_DB {
+        string MARKETING
+    }
+    MARKETING_PUBLIC_SCHEMA {
+        string PUBLIC
     }
 
     MARKETING_CAMPAIGNS {
@@ -143,35 +422,6 @@ erDiagram
         string EVENT_TYPE
         number METRIC_VALUE
     }
-
-    HR_TRN_EMPLOYEE_EVENTS {
-        number EVENT_ID
-        number EMPLOYEE_ID
-        string EVENT_TYPE
-        timestamp EVENT_TS
-        string SOURCE_SYSTEM
-    }
-    HR_TRN_BENEFIT_ENROLLMENTS {
-        number ENROLLMENT_ID
-        number EMPLOYEE_ID
-        number BENEFIT_ID
-        string PLAN_CODE
-        date EFFECTIVE_DATE
-    }
-    FINANCE_TRN_PAYMENT_EVENTS {
-        number PAYMENT_EVENT_ID
-        number PAYMENT_ID
-        string EVENT_TYPE
-        timestamp EVENT_TS
-        number AMOUNT
-    }
-    FINANCE_TRN_GL_STAGING {
-        number ENTRY_ID
-        string JOURNAL_ID
-        number ACCOUNT_ID
-        string GL_ACCOUNT
-        number AMOUNT
-    }
     MARKETING_TRN_LEAD_EVENTS {
         number LEAD_EVENT_ID
         number LEAD_ID
@@ -186,31 +436,6 @@ erDiagram
         string TOUCHPOINT
         number WEIGHT
     }
-
-    HR_TMP_PAYROLL_CALC {
-        number EMPLOYEE_ID
-        string PAY_PERIOD
-        number GROSS_PAY
-        number NET_PAY
-    }
-    HR_TMP_HIRING_PIPELINE {
-        number CANDIDATE_ID
-        string ROLE
-        string STAGE
-        string SOURCE
-    }
-    FINANCE_TMP_FORECAST {
-        number FORECAST_ID
-        string FISCAL_MONTH
-        number FORECAST_AMOUNT
-        string SCENARIO
-    }
-    FINANCE_TMP_CASHFLOW {
-        date FLOW_DATE
-        number INCOMING
-        number OUTGOING
-        number NET_FLOW
-    }
     MARKETING_TMP_SPEND_ALLOCATION {
         number CAMPAIGN_ID
         number CHANNEL_ID
@@ -223,80 +448,12 @@ erDiagram
         string MODEL_VERSION
         timestamp SCORED_AT
     }
-
-    HR_EXT_EMPLOYEES_RAW {
-        number EMPLOYEE_ID
-        string EMPLOYEE_NUMBER
-        string FIRST_NAME
-        string LAST_NAME
-        string EMAIL
-    }
-    FINANCE_EXT_TRANSACTIONS_RAW {
-        number TRANSACTION_ID
-        number ACCOUNT_ID
-        date TRANSACTION_DATE
-        number AMOUNT
-        string CURRENCY
-    }
     MARKETING_EXT_LEADS_RAW {
         number LEAD_ID
         string FIRST_NAME
         string LAST_NAME
         string EMAIL
         string STATUS
-    }
-
-    HR_ICEBERG_EMPLOYEES {
-        number EMPLOYEE_ID
-        string EMPLOYEE_NUMBER
-        string FIRST_NAME
-        string LAST_NAME
-        string EMAIL
-    }
-    FINANCE_ICEBERG_TRANSACTIONS {
-        number TRANSACTION_ID
-        number ACCOUNT_ID
-        date TRANSACTION_DATE
-        number AMOUNT
-        string CURRENCY
-    }
-
-    HR_HYBRID_EMPLOYEE_DIM {
-        number EMPLOYEE_ID
-        string FULL_NAME
-        string EMAIL
-        number DEPARTMENT_ID
-        string JOB_TITLE
-    }
-    FINANCE_HYBRID_ACCOUNT_DIM {
-        number ACCOUNT_ID
-        string ACCOUNT_NAME
-        string ACCOUNT_TYPE
-        string STATUS
-    }
-
-    HR_EMPLOYEE_DIRECTORY {
-        string EMPLOYEE_NAME
-        string EMAIL
-        string DEPARTMENT_NAME
-    }
-    HR_TIME_OFF_OVERVIEW {
-        number REQUEST_ID
-        date START_DATE
-        date END_DATE
-        string STATUS
-    }
-    FINANCE_OPEN_INVOICES {
-        number INVOICE_ID
-        string INVOICE_NUMBER
-        date DUE_DATE
-        number TOTAL_AMOUNT
-    }
-    FINANCE_ACCOUNT_ACTIVITY {
-        number ACCOUNT_ID
-        date TRANSACTION_DATE
-        number AMOUNT
-        string CATEGORY
     }
     MARKETING_CAMPAIGN_PERFORMANCE {
         number CAMPAIGN_ID
@@ -309,103 +466,16 @@ erDiagram
         string SOURCE
         string STATUS
     }
-
-    HR_MV_EMP_COUNT_BY_DEPT {
-        number DEPARTMENT_ID
-        number EMPLOYEE_COUNT
-    }
-    FINANCE_MV_DAILY_PAYMENTS {
-        date PAYMENT_DATE
-        number TOTAL_AMOUNT
-    }
-
-    HR_SEM_EMPLOYEE {
-        number EMPLOYEE_ID
-        number EMP_COUNT
-    }
-    FINANCE_SEM_TRANSACTIONS {
-        number TRANSACTION_ID
-        number TOTAL_AMOUNT
-    }
-
-    HR_EMPLOYEES_STREAM {
-        string STREAM_NAME
-    }
-    FINANCE_INVOICES_STREAM {
-        string STREAM_NAME
-    }
-    MARKETING_LEADS_STREAM {
-        string STREAM_NAME
-    }
-
-    HR_EMPLOYEE_ROSTER_DT {
-        number EMPLOYEE_ID
-        string DEPARTMENT_NAME
-    }
-    FINANCE_DAILY_TRANSACTIONS_DT {
-        date TRANSACTION_DATE
-        string CURRENCY
-        number TOTAL_AMOUNT
-    }
     MARKETING_CAMPAIGN_METRICS_DT {
         number CAMPAIGN_ID
         string EVENT_TYPE
         number ENGAGEMENT_COUNT
     }
-    HR_EMPLOYEE_EVENTS_DT {
-        date EVENT_DATE
-        string EVENT_TYPE
-        number EVENT_COUNT
-    }
-    FINANCE_PAYMENT_EVENTS_DT {
-        date EVENT_DATE
-        string PAYMENT_STATUS
-        number EVENT_COUNT
+    MARKETING_LEADS_STREAM {
+        string STREAM_NAME
     }
 
-    HR_DB ||--|| HR_PUBLIC_SCHEMA : contains
-    FINANCE_DB ||--|| FINANCE_PUBLIC_SCHEMA : contains
     MARKETING_DB ||--|| MARKETING_PUBLIC_SCHEMA : contains
-
-    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_DEPARTMENTS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_POSITIONS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_BENEFITS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_REQUESTS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_EMPLOYEE_EVENTS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TRN_BENEFIT_ENROLLMENTS : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_PAYROLL_CALC : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TMP_HIRING_PIPELINE : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_EXT_EMPLOYEES_RAW : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_ICEBERG_EMPLOYEES : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_HYBRID_EMPLOYEE_DIM : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_DIRECTORY : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_TIME_OFF_OVERVIEW : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_MV_EMP_COUNT_BY_DEPT : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_SEM_EMPLOYEE : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEES_STREAM : contains
-    HR_PUBLIC_SCHEMA ||--o{ HR_EMPLOYEE_ROSTER_DT : contains
-
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNTS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRANSACTIONS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_BUDGETS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENTS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_PAYMENT_EVENTS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TRN_GL_STAGING : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_FORECAST : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_TMP_CASHFLOW : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_EXT_TRANSACTIONS_RAW : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ICEBERG_TRANSACTIONS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_HYBRID_ACCOUNT_DIM : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_OPEN_INVOICES : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_ACCOUNT_ACTIVITY : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_MV_DAILY_PAYMENTS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_SEM_TRANSACTIONS : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_INVOICES_STREAM : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_DAILY_TRANSACTIONS_DT : contains
-    FINANCE_PUBLIC_SCHEMA ||--o{ FINANCE_PAYMENT_EVENTS_DT : contains
-
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGNS : contains
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEADS : contains
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CHANNELS : contains
@@ -420,33 +490,8 @@ erDiagram
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEAD_SOURCES : contains
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGN_METRICS_DT : contains
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEADS_STREAM : contains
-
-    HR_DEPARTMENTS ||--o{ HR_EMPLOYEES : employs
-    HR_EMPLOYEES ||--o{ HR_TIME_OFF_REQUESTS : requests
-
-    FINANCE_ACCOUNTS ||--o{ FINANCE_TRANSACTIONS : posts
-    FINANCE_INVOICES ||--o{ FINANCE_PAYMENTS : paid_by
-
-    MARKETING_CAMPAIGNS ||--o{ MARKETING_ENGAGEMENTS : drives
-    MARKETING_CHANNELS ||--o{ MARKETING_ENGAGEMENTS : records
 ```
-
-
-## Prerequisites
-
-- Terraform 1.12
-- Snowflake account with SYSADMIN or equivalent provisioning rights
-- A bootstrap warehouse (used by the provider connection)
-- S3 buckets for RAW/SILVER/GOLD stages
-- A Snowflake storage integration for external stages
-- A Snowflake external volume for Iceberg tables
-- SnowCLI (optional, but handy for loading data and running SQL)
-
-## My step-by-step setup
-
-### 1) Create S3 buckets (RAW / SILVER / GOLD)
-
-```bash
+bash
 aws s3api create-bucket --bucket myorg-snowflake-raw --region us-east-1
 aws s3api create-bucket --bucket myorg-snowflake-silver --region us-east-1
 aws s3api create-bucket --bucket myorg-snowflake-gold --region us-east-1
