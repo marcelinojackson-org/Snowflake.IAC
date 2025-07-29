@@ -708,44 +708,155 @@ terraform destroy -var-file=terraform.tfvars
 ## Table columns (detail)
 
 <!-- TABLE_COLUMNS_START -->
-| Table | Columns |
-| --- | --- |
-| `FINANCE.ACCOUNTS` | `ACCOUNT_ID NUMBER(38,0)`, `ACCOUNT_NUMBER VARCHAR(30)`, `ACCOUNT_NAME VARCHAR(150)`, `ACCOUNT_TYPE VARCHAR(50)`, `GL_CODE VARCHAR(20)`, `STATUS VARCHAR(20)`, `OWNER_DEPARTMENT_ID NUMBER(38,0)`, `OPENED_DATE DATE`, `CLOSED_DATE DATE`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.BUDGETS` | `BUDGET_ID NUMBER(38,0)`, `FISCAL_YEAR NUMBER(4,0)`, `DEPARTMENT_ID NUMBER(38,0)`, `AMOUNT NUMBER(18,2)`, `APPROVED_FLAG BOOLEAN`, `APPROVED_BY NUMBER(38,0)`, `APPROVED_AT TIMESTAMP_NTZ`, `CREATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.EVENTS` | `(event table schema is Snowflake-managed)` |
-| `FINANCE.EXT_TRANSACTIONS_RAW` | `TRANSACTION_ID NUMBER(38,0)`, `ACCOUNT_ID NUMBER(38,0)`, `TRANSACTION_DATE DATE`, `AMOUNT NUMBER(18,2)`, `CURRENCY VARCHAR`, `DESCRIPTION VARCHAR`, `MERCHANT_NAME VARCHAR`, `CATEGORY VARCHAR`, `STATUS VARCHAR` |
-| `FINANCE.HYBRID_ACCOUNT_DIM` | `ACCOUNT_ID NUMBER NOT NULL`, `ACCOUNT_NAME STRING`, `ACCOUNT_TYPE STRING`, `STATUS STRING`, `UPDATED_AT TIMESTAMP_NTZ`, `PRIMARY KEY (ACCOUNT_ID)` |
-| `FINANCE.ICEBERG_TRANSACTIONS` | `TRANSACTION_ID NUMBER`, `ACCOUNT_ID NUMBER`, `TRANSACTION_DATE DATE`, `POSTED_TS TIMESTAMP_NTZ`, `DESCRIPTION STRING`, `AMOUNT NUMBER(18,2)`, `CURRENCY STRING`, `STATUS STRING` |
-| `FINANCE.INVOICES` | `INVOICE_ID NUMBER(38,0)`, `INVOICE_NUMBER VARCHAR(40)`, `VENDOR_ID NUMBER(38,0)`, `INVOICE_DATE DATE`, `DUE_DATE DATE`, `TOTAL_AMOUNT NUMBER(18,2)`, `STATUS VARCHAR(20)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.PAYMENTS` | `PAYMENT_ID NUMBER(38,0)`, `INVOICE_ID NUMBER(38,0)`, `PAYMENT_DATE DATE`, `AMOUNT NUMBER(18,2)`, `METHOD VARCHAR(30)`, `PAYMENT_STATUS VARCHAR(20)`, `REFERENCE_NUMBER VARCHAR(50)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.TMP_CASHFLOW` | `FLOW_DATE DATE`, `INCOMING NUMBER(18,2)`, `OUTGOING NUMBER(18,2)`, `NET_FLOW NUMBER(18,2)`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.TMP_FORECAST` | `FORECAST_ID NUMBER(38,0)`, `FISCAL_MONTH VARCHAR(7)`, `FORECAST_AMOUNT NUMBER(18,2)`, `SCENARIO VARCHAR(50)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `FINANCE.TRANSACTIONS` | `TRANSACTION_ID NUMBER(38,0)`, `ACCOUNT_ID NUMBER(38,0)`, `TRANSACTION_DATE DATE`, `POSTED_TS TIMESTAMP_NTZ`, `DESCRIPTION VARCHAR(200)`, `MERCHANT_NAME VARCHAR(150)`, `CATEGORY VARCHAR(50)`, `AMOUNT NUMBER(18,2)`, `CURRENCY VARCHAR(3)`, `STATUS VARCHAR(20)` |
-| `FINANCE.TRN_GL_STAGING` | `ENTRY_ID NUMBER(38,0)`, `JOURNAL_ID VARCHAR(40)`, `ACCOUNT_ID NUMBER(38,0)`, `GL_ACCOUNT VARCHAR(20)`, `AMOUNT NUMBER(18,2)`, `POSTED_DATE DATE`, `DESCRIPTION VARCHAR(200)` |
-| `FINANCE.TRN_PAYMENT_EVENTS` | `PAYMENT_EVENT_ID NUMBER(38,0)`, `PAYMENT_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(50)`, `EVENT_TS TIMESTAMP_NTZ`, `AMOUNT NUMBER(18,2)`, `STATUS VARCHAR(20)` |
-| `HR.BENEFITS` | `BENEFIT_ID NUMBER(38,0)`, `BENEFIT_NAME VARCHAR(150)`, `BENEFIT_TYPE VARCHAR(50)`, `PLAN_CODE VARCHAR(50)`, `PROVIDER VARCHAR(100)`, `COVERAGE_LEVEL VARCHAR(50)`, `EMPLOYEE_COST NUMBER(18,2)`, `EMPLOYER_COST NUMBER(18,2)`, `EFFECTIVE_DATE DATE`, `END_DATE DATE`, `ACTIVE_FLAG BOOLEAN` |
-| `HR.DEPARTMENTS` | `DEPARTMENT_ID NUMBER(38,0)`, `DEPARTMENT_NAME VARCHAR(100)`, `COST_CENTER VARCHAR(50)`, `MANAGER_EMPLOYEE_ID NUMBER(38,0)`, `LOCATION VARCHAR(100)`, `BUDGET_AMOUNT NUMBER(18,2)`, `ACTIVE_FLAG BOOLEAN`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `HR.EMPLOYEES` | `EMPLOYEE_ID NUMBER(38,0)`, `EMPLOYEE_NUMBER VARCHAR(30)`, `FIRST_NAME VARCHAR(100)`, `MIDDLE_NAME VARCHAR(100)`, `LAST_NAME VARCHAR(100)`, `PREFERRED_NAME VARCHAR(100)`, `EMAIL VARCHAR(200)`, `PHONE VARCHAR(30)`, `HIRE_DATE DATE`, `JOB_TITLE VARCHAR(150)`, `DEPARTMENT_ID NUMBER(38,0)`, `MANAGER_ID NUMBER(38,0)`, `LOCATION VARCHAR(100)`, `EMPLOYMENT_STATUS VARCHAR(30)`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY VARCHAR(3)`, `LAST_PROMOTION_DATE DATE`, `TERMINATION_DATE DATE`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `HR.EVENTS` | `(event table schema is Snowflake-managed)` |
-| `HR.EXT_EMPLOYEES_RAW` | `EMPLOYEE_ID NUMBER(38,0)`, `EMPLOYEE_NUMBER VARCHAR`, `FIRST_NAME VARCHAR`, `LAST_NAME VARCHAR`, `EMAIL VARCHAR`, `HIRE_DATE DATE`, `DEPARTMENT_ID NUMBER(38,0)`, `JOB_TITLE VARCHAR`, `EMPLOYMENT_STATUS VARCHAR`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY VARCHAR` |
-| `HR.HYBRID_EMPLOYEE_DIM` | `EMPLOYEE_ID NUMBER NOT NULL`, `FULL_NAME STRING`, `EMAIL STRING`, `DEPARTMENT_ID NUMBER`, `JOB_TITLE STRING`, `EMPLOYMENT_STATUS STRING`, `UPDATED_AT TIMESTAMP_NTZ`, `PRIMARY KEY (EMPLOYEE_ID)` |
-| `HR.ICEBERG_EMPLOYEES` | `EMPLOYEE_ID NUMBER`, `EMPLOYEE_NUMBER STRING`, `FIRST_NAME STRING`, `LAST_NAME STRING`, `EMAIL STRING`, `HIRE_DATE DATE`, `JOB_TITLE STRING`, `DEPARTMENT_ID NUMBER`, `EMPLOYMENT_STATUS STRING`, `BASE_SALARY NUMBER(18,2)`, `SALARY_CURRENCY STRING` |
-| `HR.POSITIONS` | `POSITION_ID NUMBER(38,0)`, `POSITION_TITLE VARCHAR(150)`, `JOB_FAMILY VARCHAR(80)`, `GRADE VARCHAR(20)`, `EXEMPT_FLAG BOOLEAN`, `MIN_SALARY NUMBER(18,2)`, `MAX_SALARY NUMBER(18,2)`, `CREATED_AT TIMESTAMP_NTZ`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `HR.TIME_OFF_REQUESTS` | `REQUEST_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `START_DATE DATE`, `END_DATE DATE`, `REQUESTED_DAYS NUMBER(5,2)`, `STATUS VARCHAR(30)`, `REASON VARCHAR(200)`, `REQUESTED_AT TIMESTAMP_NTZ`, `APPROVED_BY NUMBER(38,0)`, `APPROVED_AT TIMESTAMP_NTZ` |
-| `HR.TMP_HIRING_PIPELINE` | `CANDIDATE_ID NUMBER(38,0)`, `ROLE VARCHAR(100)`, `STAGE VARCHAR(50)`, `SOURCE VARCHAR(50)`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `HR.TMP_PAYROLL_CALC` | `EMPLOYEE_ID NUMBER(38,0)`, `PAY_PERIOD VARCHAR(20)`, `GROSS_PAY NUMBER(18,2)`, `NET_PAY NUMBER(18,2)`, `TAX_WITHHELD NUMBER(18,2)`, `CALCULATED_AT TIMESTAMP_NTZ` |
-| `HR.TRN_BENEFIT_ENROLLMENTS` | `ENROLLMENT_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `BENEFIT_ID NUMBER(38,0)`, `PLAN_CODE VARCHAR(50)`, `EFFECTIVE_DATE DATE`, `ENROLLMENT_STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `HR.TRN_EMPLOYEE_EVENTS` | `EVENT_ID NUMBER(38,0)`, `EMPLOYEE_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(100)`, `EVENT_TS TIMESTAMP_NTZ`, `SOURCE_SYSTEM VARCHAR(50)`, `EVENT_PAYLOAD VARIANT` |
-| `MARKETING.CAMPAIGNS` | `CAMPAIGN_ID NUMBER(38,0)`, `CAMPAIGN_NAME VARCHAR(150)`, `CAMPAIGN_TYPE VARCHAR(50)`, `START_DATE DATE`, `END_DATE DATE`, `STATUS VARCHAR(30)`, `BUDGET NUMBER(18,2)`, `OWNER VARCHAR(100)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.CHANNELS` | `CHANNEL_ID NUMBER(38,0)`, `CHANNEL_NAME VARCHAR(100)`, `CHANNEL_TYPE VARCHAR(50)`, `PLATFORM VARCHAR(50)`, `REGION VARCHAR(50)`, `COST_PER_LEAD NUMBER(18,2)`, `ACTIVE_FLAG BOOLEAN`, `CREATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.CONTENT` | `CONTENT_ID NUMBER(38,0)`, `TITLE VARCHAR(200)`, `CONTENT_TYPE VARCHAR(50)`, `AUTHOR VARCHAR(100)`, `URL VARCHAR(500)`, `WORD_COUNT NUMBER(10,0)`, `PUBLISHED_DATE DATE`, `STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.ENGAGEMENTS` | `ENGAGEMENT_ID NUMBER(38,0)`, `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `ENGAGEMENT_DATE DATE`, `EVENT_TYPE VARCHAR(50)`, `SOURCE VARCHAR(50)`, `METRIC_VALUE NUMBER(18,2)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.EXT_LEADS_RAW` | `LEAD_ID NUMBER(38,0)`, `FIRST_NAME VARCHAR`, `LAST_NAME VARCHAR`, `EMAIL VARCHAR`, `PHONE VARCHAR`, `COMPANY VARCHAR`, `SOURCE VARCHAR`, `STATUS VARCHAR` |
-| `MARKETING.LEADS` | `LEAD_ID NUMBER(38,0)`, `FIRST_NAME VARCHAR(100)`, `LAST_NAME VARCHAR(100)`, `EMAIL VARCHAR(200)`, `PHONE VARCHAR(30)`, `COMPANY VARCHAR(150)`, `TITLE VARCHAR(100)`, `SOURCE VARCHAR(50)`, `STATUS VARCHAR(30)`, `CREATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.TMP_LEAD_SCORES` | `LEAD_ID NUMBER(38,0)`, `SCORE NUMBER(5,2)`, `MODEL_VERSION VARCHAR(20)`, `SCORED_AT TIMESTAMP_NTZ`, `SCORE_REASON VARCHAR(200)` |
-| `MARKETING.TMP_SPEND_ALLOCATION` | `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `BUDGET NUMBER(18,2)`, `ALLOCATION_PCT NUMBER(5,2)`, `UPDATED_AT TIMESTAMP_NTZ` |
-| `MARKETING.TRN_ATTRIBUTION_EVENTS` | `ATTRIBUTION_ID NUMBER(38,0)`, `CAMPAIGN_ID NUMBER(38,0)`, `CHANNEL_ID NUMBER(38,0)`, `TOUCHPOINT VARCHAR(100)`, `MODEL VARCHAR(50)`, `WEIGHT NUMBER(9,4)`, `EVENT_TS TIMESTAMP_NTZ` |
-| `MARKETING.TRN_LEAD_EVENTS` | `LEAD_EVENT_ID NUMBER(38,0)`, `LEAD_ID NUMBER(38,0)`, `EVENT_TYPE VARCHAR(50)`, `EVENT_TS TIMESTAMP_NTZ`, `SOURCE VARCHAR(50)`, `SCORE NUMBER(5,2)`, `EVENT_PAYLOAD VARIANT` |
+<table>
+<thead><tr><th>Table</th><th>Columns</th></tr></thead>
+<tbody>
+<tr>
+<td valign="top"><code>FINANCE.ACCOUNTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ACCOUNT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>ACCOUNT_NUMBER</td><td>VARCHAR(30)</td></tr><tr><td>ACCOUNT_NAME</td><td>VARCHAR(150)</td></tr><tr><td>ACCOUNT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>GL_CODE</td><td>VARCHAR(20)</td></tr><tr><td>STATUS</td><td>VARCHAR(20)</td></tr><tr><td>OWNER_DEPARTMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>OPENED_DATE</td><td>DATE</td></tr><tr><td>CLOSED_DATE</td><td>DATE</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.BUDGETS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>BUDGET_ID</td><td>NUMBER(38,0)</td></tr><tr><td>FISCAL_YEAR</td><td>NUMBER(4,0)</td></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>APPROVED_FLAG</td><td>BOOLEAN</td></tr><tr><td>APPROVED_BY</td><td>NUMBER(38,0)</td></tr><tr><td>APPROVED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>(managed)</td><td>Snowflake event table</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.EXT_TRANSACTIONS_RAW</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>TRANSACTION_ID</td><td>NUMBER(38,0)</td></tr><tr><td>ACCOUNT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>TRANSACTION_DATE</td><td>DATE</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>CURRENCY</td><td>VARCHAR</td></tr><tr><td>DESCRIPTION</td><td>VARCHAR</td></tr><tr><td>MERCHANT_NAME</td><td>VARCHAR</td></tr><tr><td>CATEGORY</td><td>VARCHAR</td></tr><tr><td>STATUS</td><td>VARCHAR</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.HYBRID_ACCOUNT_DIM</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ACCOUNT_ID</td><td>NUMBER NOT NULL</td></tr><tr><td>ACCOUNT_NAME</td><td>STRING</td></tr><tr><td>ACCOUNT_TYPE</td><td>STRING</td></tr><tr><td>STATUS</td><td>STRING</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>PRIMARY</td><td>KEY (ACCOUNT_ID)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.ICEBERG_TRANSACTIONS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>TRANSACTION_ID</td><td>NUMBER</td></tr><tr><td>ACCOUNT_ID</td><td>NUMBER</td></tr><tr><td>TRANSACTION_DATE</td><td>DATE</td></tr><tr><td>POSTED_TS</td><td>TIMESTAMP_NTZ</td></tr><tr><td>DESCRIPTION</td><td>STRING</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>CURRENCY</td><td>STRING</td></tr><tr><td>STATUS</td><td>STRING</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.INVOICES</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>INVOICE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>INVOICE_NUMBER</td><td>VARCHAR(40)</td></tr><tr><td>VENDOR_ID</td><td>NUMBER(38,0)</td></tr><tr><td>INVOICE_DATE</td><td>DATE</td></tr><tr><td>DUE_DATE</td><td>DATE</td></tr><tr><td>TOTAL_AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>STATUS</td><td>VARCHAR(20)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.PAYMENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>PAYMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>INVOICE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>PAYMENT_DATE</td><td>DATE</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>METHOD</td><td>VARCHAR(30)</td></tr><tr><td>PAYMENT_STATUS</td><td>VARCHAR(20)</td></tr><tr><td>REFERENCE_NUMBER</td><td>VARCHAR(50)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.TMP_CASHFLOW</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>FLOW_DATE</td><td>DATE</td></tr><tr><td>INCOMING</td><td>NUMBER(18,2)</td></tr><tr><td>OUTGOING</td><td>NUMBER(18,2)</td></tr><tr><td>NET_FLOW</td><td>NUMBER(18,2)</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.TMP_FORECAST</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>FORECAST_ID</td><td>NUMBER(38,0)</td></tr><tr><td>FISCAL_MONTH</td><td>VARCHAR(7)</td></tr><tr><td>FORECAST_AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>SCENARIO</td><td>VARCHAR(50)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.TRANSACTIONS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>TRANSACTION_ID</td><td>NUMBER(38,0)</td></tr><tr><td>ACCOUNT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>TRANSACTION_DATE</td><td>DATE</td></tr><tr><td>POSTED_TS</td><td>TIMESTAMP_NTZ</td></tr><tr><td>DESCRIPTION</td><td>VARCHAR(200)</td></tr><tr><td>MERCHANT_NAME</td><td>VARCHAR(150)</td></tr><tr><td>CATEGORY</td><td>VARCHAR(50)</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>CURRENCY</td><td>VARCHAR(3)</td></tr><tr><td>STATUS</td><td>VARCHAR(20)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.TRN_GL_STAGING</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ENTRY_ID</td><td>NUMBER(38,0)</td></tr><tr><td>JOURNAL_ID</td><td>VARCHAR(40)</td></tr><tr><td>ACCOUNT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>GL_ACCOUNT</td><td>VARCHAR(20)</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>POSTED_DATE</td><td>DATE</td></tr><tr><td>DESCRIPTION</td><td>VARCHAR(200)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>FINANCE.TRN_PAYMENT_EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>PAYMENT_EVENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>PAYMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EVENT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>EVENT_TS</td><td>TIMESTAMP_NTZ</td></tr><tr><td>AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>STATUS</td><td>VARCHAR(20)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.BENEFITS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>BENEFIT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>BENEFIT_NAME</td><td>VARCHAR(150)</td></tr><tr><td>BENEFIT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>PLAN_CODE</td><td>VARCHAR(50)</td></tr><tr><td>PROVIDER</td><td>VARCHAR(100)</td></tr><tr><td>COVERAGE_LEVEL</td><td>VARCHAR(50)</td></tr><tr><td>EMPLOYEE_COST</td><td>NUMBER(18,2)</td></tr><tr><td>EMPLOYER_COST</td><td>NUMBER(18,2)</td></tr><tr><td>EFFECTIVE_DATE</td><td>DATE</td></tr><tr><td>END_DATE</td><td>DATE</td></tr><tr><td>ACTIVE_FLAG</td><td>BOOLEAN</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.DEPARTMENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>DEPARTMENT_NAME</td><td>VARCHAR(100)</td></tr><tr><td>COST_CENTER</td><td>VARCHAR(50)</td></tr><tr><td>MANAGER_EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>LOCATION</td><td>VARCHAR(100)</td></tr><tr><td>BUDGET_AMOUNT</td><td>NUMBER(18,2)</td></tr><tr><td>ACTIVE_FLAG</td><td>BOOLEAN</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.EMPLOYEES</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EMPLOYEE_NUMBER</td><td>VARCHAR(30)</td></tr><tr><td>FIRST_NAME</td><td>VARCHAR(100)</td></tr><tr><td>MIDDLE_NAME</td><td>VARCHAR(100)</td></tr><tr><td>LAST_NAME</td><td>VARCHAR(100)</td></tr><tr><td>PREFERRED_NAME</td><td>VARCHAR(100)</td></tr><tr><td>EMAIL</td><td>VARCHAR(200)</td></tr><tr><td>PHONE</td><td>VARCHAR(30)</td></tr><tr><td>HIRE_DATE</td><td>DATE</td></tr><tr><td>JOB_TITLE</td><td>VARCHAR(150)</td></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>MANAGER_ID</td><td>NUMBER(38,0)</td></tr><tr><td>LOCATION</td><td>VARCHAR(100)</td></tr><tr><td>EMPLOYMENT_STATUS</td><td>VARCHAR(30)</td></tr><tr><td>BASE_SALARY</td><td>NUMBER(18,2)</td></tr><tr><td>SALARY_CURRENCY</td><td>VARCHAR(3)</td></tr><tr><td>LAST_PROMOTION_DATE</td><td>DATE</td></tr><tr><td>TERMINATION_DATE</td><td>DATE</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>(managed)</td><td>Snowflake event table</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.EXT_EMPLOYEES_RAW</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EMPLOYEE_NUMBER</td><td>VARCHAR</td></tr><tr><td>FIRST_NAME</td><td>VARCHAR</td></tr><tr><td>LAST_NAME</td><td>VARCHAR</td></tr><tr><td>EMAIL</td><td>VARCHAR</td></tr><tr><td>HIRE_DATE</td><td>DATE</td></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>JOB_TITLE</td><td>VARCHAR</td></tr><tr><td>EMPLOYMENT_STATUS</td><td>VARCHAR</td></tr><tr><td>BASE_SALARY</td><td>NUMBER(18,2)</td></tr><tr><td>SALARY_CURRENCY</td><td>VARCHAR</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.HYBRID_EMPLOYEE_DIM</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER NOT NULL</td></tr><tr><td>FULL_NAME</td><td>STRING</td></tr><tr><td>EMAIL</td><td>STRING</td></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER</td></tr><tr><td>JOB_TITLE</td><td>STRING</td></tr><tr><td>EMPLOYMENT_STATUS</td><td>STRING</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>PRIMARY</td><td>KEY (EMPLOYEE_ID)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.ICEBERG_EMPLOYEES</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER</td></tr><tr><td>EMPLOYEE_NUMBER</td><td>STRING</td></tr><tr><td>FIRST_NAME</td><td>STRING</td></tr><tr><td>LAST_NAME</td><td>STRING</td></tr><tr><td>EMAIL</td><td>STRING</td></tr><tr><td>HIRE_DATE</td><td>DATE</td></tr><tr><td>JOB_TITLE</td><td>STRING</td></tr><tr><td>DEPARTMENT_ID</td><td>NUMBER</td></tr><tr><td>EMPLOYMENT_STATUS</td><td>STRING</td></tr><tr><td>BASE_SALARY</td><td>NUMBER(18,2)</td></tr><tr><td>SALARY_CURRENCY</td><td>STRING</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.POSITIONS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>POSITION_ID</td><td>NUMBER(38,0)</td></tr><tr><td>POSITION_TITLE</td><td>VARCHAR(150)</td></tr><tr><td>JOB_FAMILY</td><td>VARCHAR(80)</td></tr><tr><td>GRADE</td><td>VARCHAR(20)</td></tr><tr><td>EXEMPT_FLAG</td><td>BOOLEAN</td></tr><tr><td>MIN_SALARY</td><td>NUMBER(18,2)</td></tr><tr><td>MAX_SALARY</td><td>NUMBER(18,2)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.TIME_OFF_REQUESTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>REQUEST_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>START_DATE</td><td>DATE</td></tr><tr><td>END_DATE</td><td>DATE</td></tr><tr><td>REQUESTED_DAYS</td><td>NUMBER(5,2)</td></tr><tr><td>STATUS</td><td>VARCHAR(30)</td></tr><tr><td>REASON</td><td>VARCHAR(200)</td></tr><tr><td>REQUESTED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>APPROVED_BY</td><td>NUMBER(38,0)</td></tr><tr><td>APPROVED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.TMP_HIRING_PIPELINE</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>CANDIDATE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>ROLE</td><td>VARCHAR(100)</td></tr><tr><td>STAGE</td><td>VARCHAR(50)</td></tr><tr><td>SOURCE</td><td>VARCHAR(50)</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.TMP_PAYROLL_CALC</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>PAY_PERIOD</td><td>VARCHAR(20)</td></tr><tr><td>GROSS_PAY</td><td>NUMBER(18,2)</td></tr><tr><td>NET_PAY</td><td>NUMBER(18,2)</td></tr><tr><td>TAX_WITHHELD</td><td>NUMBER(18,2)</td></tr><tr><td>CALCULATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.TRN_BENEFIT_ENROLLMENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ENROLLMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>BENEFIT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>PLAN_CODE</td><td>VARCHAR(50)</td></tr><tr><td>EFFECTIVE_DATE</td><td>DATE</td></tr><tr><td>ENROLLMENT_STATUS</td><td>VARCHAR(30)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>HR.TRN_EMPLOYEE_EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>EVENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EMPLOYEE_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EVENT_TYPE</td><td>VARCHAR(100)</td></tr><tr><td>EVENT_TS</td><td>TIMESTAMP_NTZ</td></tr><tr><td>SOURCE_SYSTEM</td><td>VARCHAR(50)</td></tr><tr><td>EVENT_PAYLOAD</td><td>VARIANT</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.CAMPAIGNS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>CAMPAIGN_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CAMPAIGN_NAME</td><td>VARCHAR(150)</td></tr><tr><td>CAMPAIGN_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>START_DATE</td><td>DATE</td></tr><tr><td>END_DATE</td><td>DATE</td></tr><tr><td>STATUS</td><td>VARCHAR(30)</td></tr><tr><td>BUDGET</td><td>NUMBER(18,2)</td></tr><tr><td>OWNER</td><td>VARCHAR(100)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.CHANNELS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>CHANNEL_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CHANNEL_NAME</td><td>VARCHAR(100)</td></tr><tr><td>CHANNEL_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>PLATFORM</td><td>VARCHAR(50)</td></tr><tr><td>REGION</td><td>VARCHAR(50)</td></tr><tr><td>COST_PER_LEAD</td><td>NUMBER(18,2)</td></tr><tr><td>ACTIVE_FLAG</td><td>BOOLEAN</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.CONTENT</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>CONTENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>TITLE</td><td>VARCHAR(200)</td></tr><tr><td>CONTENT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>AUTHOR</td><td>VARCHAR(100)</td></tr><tr><td>URL</td><td>VARCHAR(500)</td></tr><tr><td>WORD_COUNT</td><td>NUMBER(10,0)</td></tr><tr><td>PUBLISHED_DATE</td><td>DATE</td></tr><tr><td>STATUS</td><td>VARCHAR(30)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.ENGAGEMENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ENGAGEMENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CAMPAIGN_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CHANNEL_ID</td><td>NUMBER(38,0)</td></tr><tr><td>ENGAGEMENT_DATE</td><td>DATE</td></tr><tr><td>EVENT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>SOURCE</td><td>VARCHAR(50)</td></tr><tr><td>METRIC_VALUE</td><td>NUMBER(18,2)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.EXT_LEADS_RAW</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>LEAD_ID</td><td>NUMBER(38,0)</td></tr><tr><td>FIRST_NAME</td><td>VARCHAR</td></tr><tr><td>LAST_NAME</td><td>VARCHAR</td></tr><tr><td>EMAIL</td><td>VARCHAR</td></tr><tr><td>PHONE</td><td>VARCHAR</td></tr><tr><td>COMPANY</td><td>VARCHAR</td></tr><tr><td>SOURCE</td><td>VARCHAR</td></tr><tr><td>STATUS</td><td>VARCHAR</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.LEADS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>LEAD_ID</td><td>NUMBER(38,0)</td></tr><tr><td>FIRST_NAME</td><td>VARCHAR(100)</td></tr><tr><td>LAST_NAME</td><td>VARCHAR(100)</td></tr><tr><td>EMAIL</td><td>VARCHAR(200)</td></tr><tr><td>PHONE</td><td>VARCHAR(30)</td></tr><tr><td>COMPANY</td><td>VARCHAR(150)</td></tr><tr><td>TITLE</td><td>VARCHAR(100)</td></tr><tr><td>SOURCE</td><td>VARCHAR(50)</td></tr><tr><td>STATUS</td><td>VARCHAR(30)</td></tr><tr><td>CREATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.TMP_LEAD_SCORES</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>LEAD_ID</td><td>NUMBER(38,0)</td></tr><tr><td>SCORE</td><td>NUMBER(5,2)</td></tr><tr><td>MODEL_VERSION</td><td>VARCHAR(20)</td></tr><tr><td>SCORED_AT</td><td>TIMESTAMP_NTZ</td></tr><tr><td>SCORE_REASON</td><td>VARCHAR(200)</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.TMP_SPEND_ALLOCATION</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>CAMPAIGN_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CHANNEL_ID</td><td>NUMBER(38,0)</td></tr><tr><td>BUDGET</td><td>NUMBER(18,2)</td></tr><tr><td>ALLOCATION_PCT</td><td>NUMBER(5,2)</td></tr><tr><td>UPDATED_AT</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.TRN_ATTRIBUTION_EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>ATTRIBUTION_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CAMPAIGN_ID</td><td>NUMBER(38,0)</td></tr><tr><td>CHANNEL_ID</td><td>NUMBER(38,0)</td></tr><tr><td>TOUCHPOINT</td><td>VARCHAR(100)</td></tr><tr><td>MODEL</td><td>VARCHAR(50)</td></tr><tr><td>WEIGHT</td><td>NUMBER(9,4)</td></tr><tr><td>EVENT_TS</td><td>TIMESTAMP_NTZ</td></tr></table></td>
+</tr>
+<tr>
+<td valign="top"><code>MARKETING.TRN_LEAD_EVENTS</code></td>
+<td valign="top"><table><tr><th>Name</th><th>Type</th></tr><tr><td>LEAD_EVENT_ID</td><td>NUMBER(38,0)</td></tr><tr><td>LEAD_ID</td><td>NUMBER(38,0)</td></tr><tr><td>EVENT_TYPE</td><td>VARCHAR(50)</td></tr><tr><td>EVENT_TS</td><td>TIMESTAMP_NTZ</td></tr><tr><td>SOURCE</td><td>VARCHAR(50)</td></tr><tr><td>SCORE</td><td>NUMBER(5,2)</td></tr><tr><td>EVENT_PAYLOAD</td><td>VARIANT</td></tr></table></td>
+</tr>
+</tbody>
+</table>
 <!-- TABLE_COLUMNS_END -->
 
 ### Warehouses
