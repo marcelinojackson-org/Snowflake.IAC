@@ -491,9 +491,24 @@ erDiagram
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_CAMPAIGN_METRICS_DT : contains
     MARKETING_PUBLIC_SCHEMA ||--o{ MARKETING_LEADS_STREAM : contains
 ```
-bash
+
+### 1) Create S3 buckets (RAW / SILVER / GOLD)
+
+#### Create RAW bucket
+
+```bash
 aws s3api create-bucket --bucket myorg-snowflake-raw --region us-east-1
+```
+
+#### Create SILVER bucket
+
+```bash
 aws s3api create-bucket --bucket myorg-snowflake-silver --region us-east-1
+```
+
+#### Create GOLD bucket
+
+```bash
 aws s3api create-bucket --bucket myorg-snowflake-gold --region us-east-1
 ```
 
@@ -546,14 +561,56 @@ cp envs/dev/terraform.tfvars.example envs/dev/terraform.tfvars
 
 Then edit `envs/dev/terraform.tfvars` with your account/user/role, stage buckets, storage integration, and external volume.
 
-### 4) Initialize Terraform (downloads the provider)
+### 4) Configure remote state (required for real environments)
+
+I never store Terraform state in this repo. I keep state in a remote backend with encryption, versioning, and access controls, and I gate access with approvals (break‑glass only for admins).
+
+Pick one of the following and enable it (the backend blocks are commented out in `envs/dev/terraform.tf`):
+
+#### Option A: AWS S3 + DynamoDB locking
+
+- S3 bucket with versioning + SSE
+- DynamoDB table for state locking
+- IAM role scoped to this state path
+
+Example backend config (uncomment in `envs/dev/terraform.tf` and set your values):
+
+```hcl
+backend "s3" {
+  bucket         = "myorg-terraform-state"
+  key            = "snowflake-iac/dev/terraform.tfstate"
+  region         = "us-east-1"
+  dynamodb_table = "terraform-state-locks"
+  encrypt        = true
+}
+```
+
+#### Option B: Azure Storage + Azure AD
+
+- Storage account + container
+- Azure AD / RBAC for access
+
+Example backend config (uncomment in `envs/dev/terraform.tf` and set your values):
+
+```hcl
+backend "azurerm" {
+  resource_group_name  = "rg-terraform-state"
+  storage_account_name = "mystatetfaccount"
+  container_name       = "tfstate"
+  key                  = "snowflake-iac/dev/terraform.tfstate"
+}
+```
+
+### 5) Initialize Terraform (downloads the provider)
+
+If you change or enable the backend, I re‑run init:
 
 ```bash
 cd envs/dev
 terraform init
 ```
 
-### 5) Plan + apply
+### 6) Plan + apply
 
 ```bash
 terraform plan -var-file=terraform.tfvars -out=tfplan
@@ -566,7 +623,7 @@ If I want to use a newly created warehouse for the provider session, I apply war
 terraform apply -var-file=terraform.tfvars -target=module.warehouses
 ```
 
-### 6) Load data from stages into tables
+### 7) Load data from stages into tables
 
 Template:
 
@@ -586,7 +643,7 @@ FILE_FORMAT = (TYPE = CSV FIELD_DELIMITER = ',' SKIP_HEADER = 1)
 ON_ERROR = 'CONTINUE';
 ```
 
-### 7) Run SQL with SnowCLI (optional)
+### 8) Run SQL with SnowCLI (optional)
 
 Install SnowCLI (macOS):
 
@@ -611,7 +668,7 @@ Or from a file:
 snow sql --filename copy_into.sql
 ```
 
-### 8) Destroy (optional)
+### 9) Destroy (optional)
 
 ```bash
 terraform destroy -var-file=terraform.tfvars

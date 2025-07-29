@@ -7,6 +7,25 @@ terraform {
       version = "~> 2.12.0"
     }
   }
+
+  # Remote state is required for real environments.
+  # Uncomment ONE backend block below and configure it for your cloud.
+  # Do not store local state in this repo.
+  #
+  # backend "s3" {
+  #   bucket         = "myorg-terraform-state"
+  #   key            = "snowflake-iac/dev/terraform.tfstate"
+  #   region         = "us-east-1"
+  #   dynamodb_table = "terraform-state-locks"
+  #   encrypt        = true
+  # }
+  #
+  # backend "azurerm" {
+  #   resource_group_name  = "rg-terraform-state"
+  #   storage_account_name = "mystatetfaccount"
+  #   container_name       = "tfstate"
+  #   key                  = "snowflake-iac/dev/terraform.tfstate"
+  # }
 }
 
 provider "snowflake" {
